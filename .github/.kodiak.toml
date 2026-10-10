@@ -2,19 +2,18 @@
 version = 1
 
 [approve]
-auto_approve_usernames = ["cq-bot"]
+auto_approve_usernames = ["cloudquery-ci"]
 
 [merge.message]
 body = "pull_request_body"
-cut_body_after = "Use the following steps to ensure your PR is ready to be reviewed"
-cut_body_and_text = true
-cut_body_before = "<!-- 🎉 Thank you for making CloudQuery awesome by submitting a PR 🎉 -->"
+strip_html_comments = true
 title = "pull_request_title"
 
 [merge.automerge_dependencies]
-usernames = ["cq-bot"]
+usernames = ["cloudquery-ci"]
 versions = ["patch"]
 
 [merge]
 blocking_labels = ["wip", "no automerge"]
 notify_on_conflict = false
+priority_merge_label = "priority merge"

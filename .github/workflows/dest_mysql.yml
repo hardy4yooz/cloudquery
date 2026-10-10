@@ -1,0 +1,69 @@
+name: Destination Plugin MySQL Workflow
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  pull_request:
+    paths:
+      - "plugins/destination/mysql/**"
+      - ".github/workflows/dest_mysql.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "plugins/destination/mysql/**"
+      - ".github/workflows/dest_mysql.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  plugins-destination-mysql:
+    timeout-minutes: 30
+    name: "plugins/destination/mysql"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./plugins/destination/mysql
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 2
+      - name: Set up Go 1.x
+        id: setup-go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version-file: plugins/destination/mysql/go.mod
+          cache: false
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ steps.setup-go.outputs.go-version }}-test-destination-mysql-${{ hashFiles('plugins/destination/mysql/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-${{ steps.setup-go.outputs.go-version }}-test-destination-mysql-
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
+        with:
+          version: v2.14.0
+          working-directory: plugins/destination/mysql
+          args: "--config ../../.golangci.yml"
+      - name: gen
+        if: github.event_name == 'pull_request'
+        run: make gen
+      - name: Fail if generation updated files
+        if: github.event_name == 'pull_request'
+        run: test "$(git status -s | wc -l)" -eq 0 || (git status -s; exit 1)
+      - name: Build
+        run: go build .
+      # We don't use services as we need to pass additional arguments to the container
+      - name: Spin up MySQL
+        run: |
+          docker run --platform linux/amd64 -p 3306:3306 --name mysql -e MYSQL_ROOT_PASSWORD=test -e MYSQL_DATABASE=cloudquery -d mysql:8.0 --innodb_log_file_size=512M --innodb_strict_mode=0
+          sudo apt update && sudo apt install wait-for-it -y
+          wait-for-it -h localhost -p 3306
+      - name: Test MySQL
+        run: make test

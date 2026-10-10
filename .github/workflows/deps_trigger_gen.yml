@@ -1,0 +1,56 @@
+name: Auto trigger gen code
+
+on:
+  pull_request:
+    types: [opened, reopened]
+    paths:
+      - '**.mod'
+
+permissions:
+  contents: read
+
+jobs:
+  changed-files:
+    # We auto gen code for service SDK updates (e.g. AWS SDK), but not for our own SDK, as those changes should be handled manually
+    if: github.event.pull_request.user.login == 'cloudquery-ci[bot]' && startsWith(github.event.pull_request.title, 'fix(deps)') && startsWith(github.head_ref, 'renovate/') && !contains(github.head_ref, 'cloudquery-plugin-sdk')
+    uses: ./.github/workflows/changed_files.yml
+    with:
+      files: |
+        plugins/source/*/go.mod
+        plugins/destination/*/go.mod
+        cli/go.mod
+  gen-code-deps:
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    needs: changed-files
+    if: needs.changed-files.outputs.any_changed == 'true'
+    steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          app-id: ${{ secrets.CQ_APP_ID }}
+          private-key: ${{ secrets.CQ_APP_PRIVATE_KEY }}
+          permission-pull-requests: write
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        env:
+          SHA: ${{ github.event.pull_request.head.sha }}
+          GO_MOD_FILES: ${{ needs.changed-files.outputs.changed_files }}
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
+          script: |
+            const path = require('path');
+            const { issue: { number: issue_number }, repo: { owner, repo } } = context;
+            const { SHA: sha, GO_MOD_FILES: goModFiles } = process.env;
+            const goModFilesArray = goModFiles.split(' ');
+            for (const goModFile of goModFilesArray) {
+              // e.g. plugins/source/aws/go.mod
+              const dir = path.dirname(goModFile);
+              console.log({ issue_number, owner, repo, sha, dir });
+              await github.rest.issues.createComment({
+                issue_number,
+                owner,
+                repo,
+                body: `/gen sha=${sha} dir=${dir}`
+              })
+            }

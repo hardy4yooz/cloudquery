@@ -2,42 +2,77 @@ name: release-cli
 on:
   push:
     tags:
-      - 'cli/v*.*.*'
+      - "cli-v*.*.*"
 env:
   CGO_ENABLED: 0
 
+permissions:
+  contents: read
+
 jobs:
   release-cli:
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      packages: write
+      attestations: write
     runs-on: ubuntu-latest
     steps:
-      # Tag format is cli/<version>
+      - name: Generate GitHub App token for release
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          app-id: ${{ secrets.CQ_APP_ID }}
+          private-key: ${{ secrets.CQ_APP_PRIVATE_KEY }}
+          repositories: |
+            cloudquery
+            homebrew-tap
+          permission-contents: write
+      # Tag format is cli-<version>
       - name: Split tag
         id: split
         run: |
           tag=${{github.ref_name}}
-          echo ::set-output name=version::${tag##*/}
+          echo "version=$(echo $tag | cut -d- -f2-)" >> $GITHUB_OUTPUT
       # Fail if not a valid SemVer string
       - name: Parse semver string
         id: semver_parser
-        uses: booxmedialtd/ws-action-parse-semver@966a26512c94239a00aa10b1b0c196906f7e1909
+        uses: booxmedialtd/ws-action-parse-semver@7784200024d6b3fc01253e617ec0168daf603de3
         with:
           input_string: ${{steps.split.outputs.version}}
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          fetch-depth: 0
-      - name: Set up Go
-        uses: actions/setup-go@v3
+          fetch-depth: 2
+      - name: Set up Go 1.x
+        id: setup-go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
         with:
-          go-version: 1.18
+          go-version-file: cli/go.mod
+          cache: false
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ steps.setup-go.outputs.go-version }}-release-cache-cli-${{ hashFiles('cli/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-${{ steps.setup-go.outputs.go-version }}-release-cache-cli-
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
+
       - name: Install GoReleaser
-        uses: goreleaser/goreleaser-action@v3
+        uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # v7
         with:
           distribution: goreleaser-pro
-          version: latest
+          version: "v2.14.3"
           install-only: true
       - name: Run GoReleaser Dry-Run
-        run: goreleaser release --rm-dist --skip-validate --skip-publish -f ./cli/.goreleaser.yaml
+        run: goreleaser release --clean --skip=validate,publish -f ./cli/.goreleaser.yaml
         env:
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
           GORELEASER_CURRENT_TAG: ${{ github.ref_name }}
@@ -50,37 +85,76 @@ jobs:
       # Publish to GitHub and Homebrew
       - name: Run GoReleaser Release
         if: steps.semver_parser.outputs.prerelease == ''
-        run: goreleaser release --rm-dist -f ./cli/.goreleaser.yaml
+        run: goreleaser release --clean -f ./cli/.goreleaser.yaml
         env:
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
           GORELEASER_CURRENT_TAG: ${{ github.ref_name }}
           # A custom token is required for publishing to Homebrew
-          GITHUB_TOKEN: ${{ secrets.GORELEASER_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
 
       # Publish only to GitHub
       - name: Run GoReleaser PreRelease
         if: steps.semver_parser.outputs.prerelease != ''
-        run: goreleaser release --rm-dist -f ./cli/.goreleaser.prerelease.yaml
+        run: goreleaser release --clean -f ./cli/.goreleaser.prerelease.yaml
         env:
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
           GORELEASER_CURRENT_TAG: ${{ github.ref_name }}
           # A custom token is required for publishing to Homebrew
-          GITHUB_TOKEN: ${{ secrets.GORELEASER_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+
+      - name: Push Tag Without `cli-` component and tag prefixed with `cli/`
+        if: steps.semver_parser.outputs.prerelease == ''
+        run: |
+          git tag ${{ steps.split.outputs.version }} && git push origin ${{ steps.split.outputs.version }}
+          git tag cli/${{ steps.split.outputs.version }} && git push origin cli/${{ steps.split.outputs.version }}
+
+      - name: Generate GitHub App token for frontend
+        id: frontend-app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          app-id: ${{ secrets.CQ_APP_ID }}
+          private-key: ${{ secrets.CQ_APP_PRIVATE_KEY }}
+          repositories: |
+            frontend
+          permission-contents: write
+          permission-pull-requests: write
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          token: ${{ steps.frontend-app-token.outputs.token }}
+          repository: cloudquery/frontend
+          ref: main
+          path: ./frontend
 
       - name: Update version file
         if: steps.semver_parser.outputs.prerelease == ''
-        run: 'echo "{ \"latest\": \"${{github.ref_name}}\" }" > ./sites/versions/v1/cli.json'
+        run: 'echo "{ \"latest\": \"${{github.ref_name}}\" }" > ./frontend/apps/docs/versions/cli.json'
+
+      - name: Update docs
+        if: steps.semver_parser.outputs.prerelease == ''
+        run: |
+          cp -r ./cli/docs/reference/*.md ./frontend/apps/docs/content/cli/cli-reference/
 
       - name: Create Pull Request
         if: steps.semver_parser.outputs.prerelease == ''
-        uses: peter-evans/create-pull-request@v4
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8
         with:
           # required so the PR triggers workflow runs
-          token: ${{ secrets.GH_CQ_BOT }}
+          token: ${{ steps.frontend-app-token.outputs.token }}
+          path: frontend
           branch: chore/update-cli-version
           base: main
           title: "chore: Update CLI version to ${{steps.split.outputs.version}}"
           commit-message: "chore: Update CLI version to ${{steps.split.outputs.version}}"
           body: Updates the CLI latest version to ${{steps.split.outputs.version}}
           labels: automerge
-          author: cq-bot <cq-bot@users.noreply.github.com>
+      - name: Slack Notify
+        uses: ravsamhq/notify-slack-action@0670a0482d2a919531ba3b219e0c535fe4fcc791
+        if: always()
+        with:
+          status: ${{ job.status }}
+          notify_when: "failure"
+          notification_title: "Failed to release CLI ${{ steps.split.outputs.version }}"
+          footer: "<{repo_url}|{repo}>"
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.ALERTS_INTEGRATIONS_SLACK_WEBHOOK_URL }}

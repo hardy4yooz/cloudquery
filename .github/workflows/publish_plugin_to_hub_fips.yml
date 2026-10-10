@@ -1,0 +1,142 @@
+name: Publish plugin to hub FIPS
+on:
+  push:
+    tags:
+      - "plugins-source-test-v*.*.*"
+      - "plugins-destination-bigquery-v*.*.*"
+      - "plugins-destination-kafka-v*.*.*"
+      - "plugins-destination-postgresql-v*.*.*"
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      plugin_name: ${{ steps.split.outputs.plugin_name }}
+      plugin_kind: ${{ steps.split.outputs.plugin_kind }}
+      plugin_version: ${{ steps.split.outputs.plugin_version }}-fips
+      plugin_dir: ${{ steps.split.outputs.plugin_dir }}
+      prerelease: ${{ steps.semver_parser.outputs.prerelease }}
+    steps:
+      - name: Split tag
+        id: split
+        run: |
+          tag=${{ github.ref_name }}
+          plugin_kind=$(echo $tag | cut -d- -f2)
+          plugin_name=$(echo $tag | cut -d- -f3)
+          plugin_version=$(echo $tag | cut -d- -f4-)
+          # perform looping till either the plugin version passes our semver test or is empty
+          until [[ $plugin_version =~ ^v?[0-9]+\.[0-9]+ ]] || [[ $(echo $plugin_version | wc -c) -eq 0 ]] ; do
+             echo "${plugin_version} is not a valid version"
+             plugin_name="$plugin_name-$(echo $plugin_version | cut -d- -f1)"
+             plugin_version=$(echo $plugin_version | cut -d- -f2-)
+          done
+          echo "plugin_name=${plugin_name}" >> $GITHUB_OUTPUT
+          echo "plugin_kind=${plugin_kind}" >> $GITHUB_OUTPUT
+          echo "plugin_version=${plugin_version}" >> $GITHUB_OUTPUT
+          echo "plugin_dir=plugins/${plugin_kind}/${plugin_name}" >> $GITHUB_OUTPUT
+
+      # Fail if not a valid SemVer string
+      - name: Parse semver string
+        uses: booxmedialtd/ws-action-parse-semver@7784200024d6b3fc01253e617ec0168daf603de3
+        id: semver_parser
+        with:
+          input_string: ${{steps.split.outputs.plugin_version}}
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+  publish-plugin-to-hub-fips:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    needs:
+      - prepare
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go 1.x
+        id: setup-go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version-file: ${{ needs.prepare.outputs.plugin_dir }}/go.mod
+          cache: false
+
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ steps.setup-go.outputs.go-version }}-publish-plugin-to-hub-fips-cache-plugins-${{ needs.prepare.outputs.plugin_kind }}-${{ needs.prepare.outputs.plugin_name }}-${{ hashFiles(format('{0}/{1}', needs.prepare.outputs.plugin_dir, 'go.sum')) }}
+          restore-keys: |
+            ${{ runner.os }}-go-${{ steps.setup-go.outputs.go-version }}-publish-plugin-to-hub-fips-cache-plugins-${{ needs.prepare.outputs.plugin_kind }}-${{ needs.prepare.outputs.plugin_name }}-
+
+      # Needed for shell escape
+      - name: Use Node.js LTS
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: "lts/*"
+
+      - name: Install shell escape
+        run: |
+          npm install shell-escape@0.2.0
+
+      - name: Get Release Notes
+        id: release-notes
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        env:
+          PRERELEASE: ${{ needs.prepare.outputs.prerelease }}
+        with:
+          result-encoding: string
+          script: |
+            const shellescape = require('shell-escape');
+            const { PRERELEASE } = process.env;
+            if (PRERELEASE) {
+              return shellescape(["This is a pre-release version of the plugin and should be used for testing purposes only"])
+            }
+            const { data } = await github.rest.repos.getReleaseByTag({
+              owner: "cloudquery",
+              repo: context.repo.repo,
+              tag: context.ref.replace('refs/tags/', ''),
+            });
+            return shellescape([data.body]);
+
+      - name: Find and Replace
+        uses: jacobtomlinson/gha-find-replace@b19bfcb2a015af55fd6e160d1d1987e887f8c163
+        with:
+          find: "(?i)version_${{ needs.prepare.outputs.plugin_kind }}_${{ needs.prepare.outputs.plugin_name }}"
+          replace: ${{ needs.prepare.outputs.plugin_version }}
+          include: ${{ needs.prepare.outputs.plugin_dir }}/docs/*.md
+
+      - name: Run package command
+        working-directory: ${{ needs.prepare.outputs.plugin_dir }}
+        env:
+          GOFLAGS: "-tags=fipsEnabled"
+        run: |
+          rm -rf docs/tables.md
+          go run main_fips.go package -m ${{ steps.release-notes.outputs.result }} ${{ needs.prepare.outputs.plugin_version }} .
+
+      - name: Setup CloudQuery
+        uses: cloudquery/setup-cloudquery@757b19eb8496cf9e89a78de54f2c677253f54f6b # v5.0.3
+        with:
+          version: v6.47.0
+
+      - name: Publish plugin to hub
+        working-directory: ${{ needs.prepare.outputs.plugin_dir }}
+        env:
+          CLOUDQUERY_API_KEY: ${{ secrets.CLOUDQUERY_API_KEY }}
+        run: |
+          cloudquery plugin publish --finalize
+
+      - name: Slack Notify
+        uses: ravsamhq/notify-slack-action@0670a0482d2a919531ba3b219e0c535fe4fcc791
+        if: always()
+        with:
+          status: ${{ job.status }}
+          notify_when: 'failure'
+          notification_title: 'Failed to publish to hub ${{ needs.prepare.outputs.plugin_kind }}-${{ needs.prepare.outputs.plugin_name }}@${{ needs.prepare.outputs.plugin_version }}'
+          footer: '<{repo_url}|{repo}>'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.ALERTS_INTEGRATIONS_SLACK_WEBHOOK_URL }}

@@ -1,0 +1,103 @@
+package client
+
+import (
+	"context"
+	"errors"
+	"fmt"
+
+	"github.com/cloudquery/cloudquery/plugins/destination/mongodb/v2/client/spec"
+	"github.com/cloudquery/plugin-sdk/v4/plugin"
+	"github.com/cloudquery/plugin-sdk/v4/writers/batchwriter"
+	"github.com/goccy/go-json"
+	"github.com/rs/zerolog"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/x/mongo/driver/auth"
+)
+
+type Client struct {
+	plugin.UnimplementedSource
+	batchwriter.UnimplementedDeleteRecord
+	logger zerolog.Logger
+	spec   *spec.Spec
+	client *mongo.Client
+	writer *batchwriter.BatchWriter
+}
+
+var errInvalidSpec = errors.New("invalid spec")
+var errConnectionFailed = errors.New("failed to connect to MongoDB")
+
+func oidcCredential(o *spec.WorkloadIdentityFederation) options.Credential {
+	props := map[string]string{auth.EnvironmentProp: o.Environment}
+	if o.TokenResource != "" {
+		props[auth.ResourceProp] = o.TokenResource
+	}
+	return options.Credential{
+		AuthMechanism:           auth.MongoDBOIDC,
+		AuthMechanismProperties: props,
+		// Only used by the azure flow, where it is the managed-identity client ID.
+		Username: o.Username,
+	}
+}
+
+func New(ctx context.Context, logger zerolog.Logger, specByte []byte, opts plugin.NewClientOptions) (plugin.Client, error) {
+	var err error
+	c := &Client{
+		logger: logger.With().Str("module", "mongo-dest").Logger(),
+	}
+	if opts.NoConnection {
+		return c, nil
+	}
+	if err := json.Unmarshal(specByte, &c.spec); err != nil {
+		return nil, errors.Join(errInvalidSpec, err)
+	}
+	c.spec.SetDefaults()
+	if err := c.spec.Validate(); err != nil {
+		return nil, errors.Join(errInvalidSpec, err)
+	}
+
+	mongoDBClientOptions := options.Client().ApplyURI(c.spec.ConnectionString).SetRegistry(getRegistry())
+	if c.spec.AWSCredentials != nil {
+		auth.RegisterAuthenticatorFactory(MongoDBCQAWS, NewAuthenticator)
+		assumeRoleCredential := options.Credential{
+			AuthMechanism: MongoDBCQAWS,
+			AuthMechanismProperties: map[string]string{
+				"LocalProfile":    c.spec.AWSCredentials.LocalProfile,
+				"RoleARN":         c.spec.AWSCredentials.RoleARN,
+				"RoleSessionName": c.spec.AWSCredentials.RoleSessionName,
+				"ExternalID":      c.spec.AWSCredentials.ExternalID,
+				"Default":         fmt.Sprintf("%t", c.spec.AWSCredentials.Default),
+			},
+		}
+		// According to the docs: if ApplyURI is called before SetAuth, the Credential from SetAuth will overwrite the values from the connection string
+		mongoDBClientOptions = mongoDBClientOptions.SetAuth(assumeRoleCredential)
+	} else if c.spec.WorkloadIdentityFederation != nil {
+		mongoDBClientOptions = mongoDBClientOptions.SetAuth(oidcCredential(c.spec.WorkloadIdentityFederation))
+	}
+
+	c.client, err = mongo.Connect(mongoDBClientOptions)
+	if err != nil {
+		return nil, errors.Join(errConnectionFailed, err)
+	}
+	if err := c.client.Ping(ctx, nil); err != nil {
+		return nil, err
+	}
+
+	c.writer, err = batchwriter.New(c, batchwriter.WithBatchSize(c.spec.BatchSize), batchwriter.WithBatchSizeBytes(c.spec.BatchSizeBytes), batchwriter.WithLogger(c.logger))
+	if err != nil {
+		return nil, err
+	}
+
+	return c, nil
+}
+
+func (c *Client) Close(ctx context.Context) error {
+	if c.client == nil {
+		return errors.New("client already closed or not initialized")
+	}
+	if err := c.writer.Close(ctx); err != nil {
+		_ = c.client.Disconnect(ctx)
+		return fmt.Errorf("failed to close writer: %w", err)
+	}
+	return c.client.Disconnect(ctx)
+}

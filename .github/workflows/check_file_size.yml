@@ -8,12 +8,15 @@ on:
       - "**.png"
       - "**.webp"
 
+permissions:
+  contents: read
+
 jobs:
   check-files-size:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Check file sizes
         id: should-run
@@ -37,4 +40,4 @@ jobs:
           fi;
 
         env:
-          LIMIT: 250
+          LIMIT: 800

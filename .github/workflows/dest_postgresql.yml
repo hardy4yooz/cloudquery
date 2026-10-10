@@ -1,0 +1,104 @@
+name: Destination Plugin Postgresql Workflow
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  pull_request:
+    paths:
+      - "plugins/destination/postgresql/**"
+      - ".github/workflows/dest_postgresql.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "plugins/destination/postgresql/**"
+      - ".github/workflows/dest_postgresql.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  plugins-destination-postgresql:
+    timeout-minutes: 30
+    name: "plugins/destination/postgresql"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./plugins/destination/postgresql
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 2
+      - name: Set up Go 1.x
+        id: setup-go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version-file: plugins/destination/postgresql/go.mod
+          cache: false
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ steps.setup-go.outputs.go-version }}-test-destination-postgresql-${{ hashFiles('plugins/destination/postgresql/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-${{ steps.setup-go.outputs.go-version }}-test-destination-postgresql-
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
+        with:
+          version: v2.14.0
+          working-directory: plugins/destination/postgresql
+          args: "--config ../../.golangci.yml"
+      - name: gen
+        if: github.event_name == 'pull_request'
+        run: make gen
+      - name: Fail if generation updated files
+        if: github.event_name == 'pull_request'
+        run: test "$(git status -s | wc -l)" -eq 0 || (git status -s; exit 1)
+      - name: Build
+        run: go build .
+      - name: Test PG
+        run: make test
+      - name: Test CockroachDB
+        run: make test-cockroachdb
+
+  validate-fips:
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./plugins/destination/postgresql
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Set up Go 1.x
+        id: setup-go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version-file: plugins/destination/postgresql/go.mod
+          cache: false
+
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ steps.setup-go.outputs.go-version }}-validate-plugin-fips-cache-destination-postgresql-${{ hashFiles('plugins/destination/postgresql/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-${{ steps.setup-go.outputs.go-version }}-validate-plugin-fips-cache-destination-postgresql-
+
+      - name: Run package command
+        env:
+          GOFLAGS: "-tags=fipsEnabled"
+        run: |
+          rm -rf docs/tables.md
+          go run main_fips.go package -m "chore: Test FIPS" "v1.0.0" .
+
+      - name: Unzip package artifacts
+        run: |
+          unzip -o dist/plugin-postgresql-v1.0.0-linux-amd64.zip
+          chmod +x plugin-postgresql-v1.0.0-linux-amd64
+          ./plugin-postgresql-v1.0.0-linux-amd64 --version 2>&1 | grep -E 'FIPS enabled: true'

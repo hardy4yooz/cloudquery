@@ -1,0 +1,384 @@
+# Changelog
+
+## [2.3.12](https://github.com/cloudquery/cloudquery/compare/plugins-source-airtable-v2.3.11...plugins-source-airtable-v2.3.12) (2026-07-10)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency ava to v8 ([#22911](https://github.com/cloudquery/cloudquery/issues/22911)) ([4854d9e](https://github.com/cloudquery/cloudquery/commit/4854d9e38a5ad18f086151d245306ca1175a0830))
+* **deps:** Update dependency dayjs to v1.11.21 ([#23009](https://github.com/cloudquery/cloudquery/issues/23009)) ([76980af](https://github.com/cloudquery/cloudquery/commit/76980afa77a2a3c7582dbfcd8f10ec9781ab9f2a))
+* **deps:** Update dependency eslint to v10.5.0 ([#23019](https://github.com/cloudquery/cloudquery/issues/23019)) ([3db3e09](https://github.com/cloudquery/cloudquery/commit/3db3e093a509cc41239c51d7d23e77a865059f31))
+* **deps:** Update dependency eslint-plugin-ava to v17 ([#22912](https://github.com/cloudquery/cloudquery/issues/22912)) ([cf4f1be](https://github.com/cloudquery/cloudquery/commit/cf4f1be72eae1646be5fd4f8ab6b095bdd72a21f))
+* **deps:** Update dependency eslint-plugin-unicorn to v68 ([#23042](https://github.com/cloudquery/cloudquery/issues/23042)) ([c29fed6](https://github.com/cloudquery/cloudquery/commit/c29fed609ea1146f43738f534f17951cfec4a938))
+* **deps:** Update dependency got to v15.0.6 ([#23010](https://github.com/cloudquery/cloudquery/issues/23010)) ([06431ae](https://github.com/cloudquery/cloudquery/commit/06431ae4ab5e3ea3fe1995408adae9433242dd21))
+* **deps:** Update dependency prettier to v3.8.4 ([#23011](https://github.com/cloudquery/cloudquery/issues/23011)) ([4e10b65](https://github.com/cloudquery/cloudquery/commit/4e10b65b81411dd082616c53a77077bb1fd35c55))
+* **deps:** Update dependency typescript-eslint to v8.62.0 ([#23020](https://github.com/cloudquery/cloudquery/issues/23020)) ([1b41ff5](https://github.com/cloudquery/cloudquery/commit/1b41ff501d878c0f228bc4cff133d1ad97f8d62b))
+* **deps:** Update eslint packages ([#23013](https://github.com/cloudquery/cloudquery/issues/23013)) ([86d8477](https://github.com/cloudquery/cloudquery/commit/86d84770cd07575da432d7f46659a1a842cb0ffc))
+* **deps:** Update module golang.org/x/net to v0.56.0 ([#23033](https://github.com/cloudquery/cloudquery/issues/23033)) ([43c367a](https://github.com/cloudquery/cloudquery/commit/43c367a645b5e26781b06039a0780cffb40bb2cd))
+* **deps:** Update pnpm to v10.34.4 ([#23039](https://github.com/cloudquery/cloudquery/issues/23039)) ([e68b290](https://github.com/cloudquery/cloudquery/commit/e68b2907195ff2f8aca6e0f31b4085a084dadc53))
+
+## [2.3.11](https://github.com/cloudquery/cloudquery/compare/plugins-source-airtable-v2.3.10...plugins-source-airtable-v2.3.11) (2026-06-02)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency ajv to v8.20.0 ([#22887](https://github.com/cloudquery/cloudquery/issues/22887)) ([363dd56](https://github.com/cloudquery/cloudquery/commit/363dd56afb5b1414ca13d8a04008a559ee7aeb09))
+* **deps:** Update dependency eslint to v10.4.0 ([#22888](https://github.com/cloudquery/cloudquery/issues/22888)) ([f6a6a82](https://github.com/cloudquery/cloudquery/commit/f6a6a8268c4a46400e1ea59832bd5667c703dda7))
+* **deps:** Update dependency eslint-plugin-promise to v7.3.0 ([#22889](https://github.com/cloudquery/cloudquery/issues/22889)) ([8bb091c](https://github.com/cloudquery/cloudquery/commit/8bb091c9470cbaa5b9719259b41f85edb847e17e))
+* **deps:** Update dependency got to v15.0.5 ([#22877](https://github.com/cloudquery/cloudquery/issues/22877)) ([270c0dc](https://github.com/cloudquery/cloudquery/commit/270c0dc7c665c2876b93c7433ba81011bd2fee4c))
+* **deps:** Update dependency typescript-eslint to v8.59.4 ([#22878](https://github.com/cloudquery/cloudquery/issues/22878)) ([b9b9a33](https://github.com/cloudquery/cloudquery/commit/b9b9a334525360b2be05e57a572eb9002f030818))
+* **deps:** Update pnpm to v10.33.4 ([#22885](https://github.com/cloudquery/cloudquery/issues/22885)) ([347768a](https://github.com/cloudquery/cloudquery/commit/347768a6bed9838bf8fb061e15e21eb263d69d17))
+
+## [2.3.10](https://github.com/cloudquery/cloudquery/compare/plugins-source-airtable-v2.3.9...plugins-source-airtable-v2.3.10) (2026-05-02)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency @ava/typescript to v7 ([#22792](https://github.com/cloudquery/cloudquery/issues/22792)) ([f8dc9b2](https://github.com/cloudquery/cloudquery/commit/f8dc9b2ce09cc222cd7722554b69d822fd9258d6))
+* **deps:** Update dependency ava to v7 ([#22434](https://github.com/cloudquery/cloudquery/issues/22434)) ([e218ad6](https://github.com/cloudquery/cloudquery/commit/e218ad62b4e1e4d7d0adbda7f0653423d14c5a3e))
+* **deps:** Update dependency eslint to v10 ([#22445](https://github.com/cloudquery/cloudquery/issues/22445)) ([39a1bdb](https://github.com/cloudquery/cloudquery/commit/39a1bdbdad23e38b1c47172fb76bf850bda3245f))
+* **deps:** Update dependency eslint to v10.2.1 ([#22777](https://github.com/cloudquery/cloudquery/issues/22777)) ([7935be2](https://github.com/cloudquery/cloudquery/commit/7935be2b02db570f764e6e5d26b6e558c866850e))
+* **deps:** Update dependency eslint-plugin-ava to v16.0.1 ([#22761](https://github.com/cloudquery/cloudquery/issues/22761)) ([cc26b00](https://github.com/cloudquery/cloudquery/commit/cc26b009de4c45e34286bac2486a951ab0e5f7ad))
+* **deps:** Update dependency eslint-plugin-unicorn to v64 ([#22793](https://github.com/cloudquery/cloudquery/issues/22793)) ([5b6a0db](https://github.com/cloudquery/cloudquery/commit/5b6a0dbc46112e19492dad01b56c47309447505a))
+* **deps:** Update dependency prettier to v3.8.3 ([#22764](https://github.com/cloudquery/cloudquery/issues/22764)) ([2393149](https://github.com/cloudquery/cloudquery/commit/2393149d5f0af9a8acba39e2be6f90d8bdefaad8))
+* **deps:** Update dependency typescript to v6 ([#22435](https://github.com/cloudquery/cloudquery/issues/22435)) ([0e9b831](https://github.com/cloudquery/cloudquery/commit/0e9b831e0eb270bc5fa225b1458d5b2c7c17166d))
+* **deps:** Update dependency typescript to v6 ([#22795](https://github.com/cloudquery/cloudquery/issues/22795)) ([7f1b964](https://github.com/cloudquery/cloudquery/commit/7f1b96478dea241957a59e3777ab557638b9d452))
+* **deps:** Update dependency typescript-eslint to v8.59.0 ([#22778](https://github.com/cloudquery/cloudquery/issues/22778)) ([1618296](https://github.com/cloudquery/cloudquery/commit/161829653082bed98d2d1cd30c914165bbdefbcf))
+* **deps:** Update eslint packages (major) ([#22437](https://github.com/cloudquery/cloudquery/issues/22437)) ([adbfa44](https://github.com/cloudquery/cloudquery/commit/adbfa44bf045436a321041e5d46051865d0c5851))
+* **deps:** Update module golang.org/x/term to v0.42.0 ([#22786](https://github.com/cloudquery/cloudquery/issues/22786)) ([b4a7483](https://github.com/cloudquery/cloudquery/commit/b4a7483737409bc227704cbe49f9cfe515e89a5d))
+* **deps:** Update module google.golang.org/api to v0.275.0 ([#22590](https://github.com/cloudquery/cloudquery/issues/22590)) ([0e4cedc](https://github.com/cloudquery/cloudquery/commit/0e4cedc995e977a7dded30b2abeaf916c95abb90))
+* **deps:** Update pnpm to v10.33.2 ([#22775](https://github.com/cloudquery/cloudquery/issues/22775)) ([b089213](https://github.com/cloudquery/cloudquery/commit/b089213c582047d10000832a00e8a003e8c91ec1))
+
+## [2.3.9](https://github.com/cloudquery/cloudquery/compare/plugins-source-airtable-v2.3.8...plugins-source-airtable-v2.3.9) (2026-04-01)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency dayjs to v1.11.20 ([#22410](https://github.com/cloudquery/cloudquery/issues/22410)) ([ebe082f](https://github.com/cloudquery/cloudquery/commit/ebe082f981e3e3bd82a40cdae1b1f4912e6d3aba))
+* **deps:** Update typescript-eslint monorepo to v8.57.2 ([#22428](https://github.com/cloudquery/cloudquery/issues/22428)) ([82455ef](https://github.com/cloudquery/cloudquery/commit/82455efad94c730161be5fa8856c96134b752465))
+* Update old subdomain URLs to new path-based domains ([#22319](https://github.com/cloudquery/cloudquery/issues/22319)) ([a7cec25](https://github.com/cloudquery/cloudquery/commit/a7cec25bfcedc0a6f8b147ec6ee7b84bf02ed65c))
+
+## [2.3.8](https://github.com/cloudquery/cloudquery/compare/plugins-source-airtable-v2.3.7...plugins-source-airtable-v2.3.8) (2026-03-09)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency @tsconfig/node20 to v20.1.9 ([#22126](https://github.com/cloudquery/cloudquery/issues/22126)) ([c590040](https://github.com/cloudquery/cloudquery/commit/c590040cf5f9770dd1be3a892b3418f1aeea3967))
+* **deps:** Update dependency eslint-plugin-unused-imports to v4.4.1 ([#22136](https://github.com/cloudquery/cloudquery/issues/22136)) ([4d0bb01](https://github.com/cloudquery/cloudquery/commit/4d0bb01952e6b48ec2118e72685cbd37a45e14b7))
+* **deps:** Update dependency tempy to v3.2.0 ([#22137](https://github.com/cloudquery/cloudquery/issues/22137)) ([1b9662f](https://github.com/cloudquery/cloudquery/commit/1b9662fc965d216025c020978cb05f59c82fd794))
+* **deps:** Update typescript-eslint monorepo to v8.56.0 ([#22152](https://github.com/cloudquery/cloudquery/issues/22152)) ([31bf800](https://github.com/cloudquery/cloudquery/commit/31bf80038300687654dfea67e1a0edba2f59e5a6))
+
+## [2.3.7](https://github.com/cloudquery/cloudquery/compare/plugins-source-airtable-v2.3.6...plugins-source-airtable-v2.3.7) (2026-03-01)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency @cloudquery/plugin-sdk-javascript to v0.1.33 ([#22061](https://github.com/cloudquery/cloudquery/issues/22061)) ([7b77806](https://github.com/cloudquery/cloudquery/commit/7b77806a0144842522f3e9b7e9e176082fcb93cc))
+* **deps:** Update dependency @cloudquery/plugin-sdk-javascript to v0.1.34 ([#22081](https://github.com/cloudquery/cloudquery/issues/22081)) ([f0a1550](https://github.com/cloudquery/cloudquery/commit/f0a155086094e99f6c9fe22e8c8061c79d1ae066))
+* **deps:** Update dependency @cloudquery/plugin-sdk-javascript to v0.1.35 ([#22083](https://github.com/cloudquery/cloudquery/issues/22083)) ([844eea1](https://github.com/cloudquery/cloudquery/commit/844eea1f12e3eba0247f82d0bb8f97ecc208ea99))
+* **deps:** Update dependency ajv to v8.18.0 [SECURITY] ([#22058](https://github.com/cloudquery/cloudquery/issues/22058)) ([4ffd14a](https://github.com/cloudquery/cloudquery/commit/4ffd14aac511346384442ca4ae8fa509d01a070f))
+
+## [2.3.6](https://github.com/cloudquery/cloudquery/compare/plugins-source-airtable-v2.3.5...plugins-source-airtable-v2.3.6) (2026-02-12)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency @ava/typescript to v6 ([#21970](https://github.com/cloudquery/cloudquery/issues/21970)) ([68e29c2](https://github.com/cloudquery/cloudquery/commit/68e29c2850556c8fa919bee2269f6ca11617de54))
+* **deps:** Update dependency @cloudquery/plugin-sdk-javascript to v0.1.32 ([#22010](https://github.com/cloudquery/cloudquery/issues/22010)) ([4887e59](https://github.com/cloudquery/cloudquery/commit/4887e59b98aa932b6602c3e7dcf983feb52eefdf))
+* **deps:** Update dependency @types/uuid to v11 ([#21971](https://github.com/cloudquery/cloudquery/issues/21971)) ([f6a7890](https://github.com/cloudquery/cloudquery/commit/f6a78900e607a42b989b4ccead1ac2ada0676ae9))
+* **deps:** Update dependency ava to v6.4.1 ([#21895](https://github.com/cloudquery/cloudquery/issues/21895)) ([38e5242](https://github.com/cloudquery/cloudquery/commit/38e5242da33683f7b4c832fffa36c16cdc2043a3))
+* **deps:** Update dependency camelcase-keys to v10 ([#21973](https://github.com/cloudquery/cloudquery/issues/21973)) ([f0c3429](https://github.com/cloudquery/cloudquery/commit/f0c342970d5bf4f86e168cea98feb083f3ad5235))
+* **deps:** Update dependency dot-prop to v10 ([#21975](https://github.com/cloudquery/cloudquery/issues/21975)) ([bcbf222](https://github.com/cloudquery/cloudquery/commit/bcbf222b03f2659f39c1071032bcb477361a7444))
+* **deps:** Update dependency got to v14.6.6 ([#21896](https://github.com/cloudquery/cloudquery/issues/21896)) ([d3b35c6](https://github.com/cloudquery/cloudquery/commit/d3b35c68b48d959e52b1cb7e57773761221a8e4d))
+* **deps:** Update dependency prettier to v3.8.1 ([#21899](https://github.com/cloudquery/cloudquery/issues/21899)) ([3a7e5f7](https://github.com/cloudquery/cloudquery/commit/3a7e5f7ecae0ca542abba123c2e2453d810adf33))
+* **deps:** Update dependency read-package-up to v12 ([#21979](https://github.com/cloudquery/cloudquery/issues/21979)) ([bda95a9](https://github.com/cloudquery/cloudquery/commit/bda95a9e11ac2297224f41ccf397f5de29767319))
+* **deps:** Update dependency tempy to v3.1.2 ([#21884](https://github.com/cloudquery/cloudquery/issues/21884)) ([37ca78e](https://github.com/cloudquery/cloudquery/commit/37ca78ecc66f21f6e8b3682fa0ade196dbd6bc1c))
+* **deps:** Update dependency typescript to v5.9.3 ([#21901](https://github.com/cloudquery/cloudquery/issues/21901)) ([4571256](https://github.com/cloudquery/cloudquery/commit/4571256d1b60b96c43c284b81741627c6deed809))
+* **deps:** Update dependency winston to v3.19.0 ([#21902](https://github.com/cloudquery/cloudquery/issues/21902)) ([1b2ad50](https://github.com/cloudquery/cloudquery/commit/1b2ad50bcb41fd8fdbb04196c89d2a7d5eeb690b))
+* **deps:** Update eslint packages ([#21885](https://github.com/cloudquery/cloudquery/issues/21885)) ([0c5c345](https://github.com/cloudquery/cloudquery/commit/0c5c34564f505fa6dd6913cdbe66cbb66d704856))
+* **deps:** Update typescript-eslint monorepo to v8.53.1 ([#21945](https://github.com/cloudquery/cloudquery/issues/21945)) ([3bc6737](https://github.com/cloudquery/cloudquery/commit/3bc67371d2a261b8872a915477c440a570cc97da))
+
+## [2.3.5](https://github.com/cloudquery/cloudquery/compare/plugins-source-airtable-v2.3.4...plugins-source-airtable-v2.3.5) (2026-01-08)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency @cloudquery/plugin-sdk-javascript to v0.1.31 ([#21793](https://github.com/cloudquery/cloudquery/issues/21793)) ([198840d](https://github.com/cloudquery/cloudquery/commit/198840d2c8ea8437d862eac5707e2518d5e6df16))
+
+## [2.3.4](https://github.com/cloudquery/cloudquery/compare/plugins-source-airtable-v2.3.3...plugins-source-airtable-v2.3.4) (2025-12-19)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency @tsconfig/node20 to v20.1.8 ([#21669](https://github.com/cloudquery/cloudquery/issues/21669)) ([3a9f106](https://github.com/cloudquery/cloudquery/commit/3a9f106f56f132e498b2cccaea53777cddd935fd))
+* **deps:** Update dependency @types/yargs to v17.0.35 ([#21670](https://github.com/cloudquery/cloudquery/issues/21670)) ([aef4e32](https://github.com/cloudquery/cloudquery/commit/aef4e32074b3428a0456ce8c9b988fefd44dfc42))
+* **deps:** Update dependency dayjs to v1.11.19 ([#21671](https://github.com/cloudquery/cloudquery/issues/21671)) ([1d541dd](https://github.com/cloudquery/cloudquery/commit/1d541dd571ea580f90f8da2d0286305d0a573961))
+* **deps:** Update dependency p-map to v7.0.4 ([#21674](https://github.com/cloudquery/cloudquery/issues/21674)) ([62c37b5](https://github.com/cloudquery/cloudquery/commit/62c37b533624d3930e1ddd2df196b57e485d50d7))
+
+## [2.3.3](https://github.com/cloudquery/cloudquery/compare/plugins-source-airtable-v2.3.2...plugins-source-airtable-v2.3.3) (2025-11-10)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency @types/yargs to v17.0.34 ([#21551](https://github.com/cloudquery/cloudquery/issues/21551)) ([eddf037](https://github.com/cloudquery/cloudquery/commit/eddf037b0a84c83c9e6c0471d187bde1f2ce3b29))
+
+## [2.3.2](https://github.com/cloudquery/cloudquery/compare/plugins-source-airtable-v2.3.1...plugins-source-airtable-v2.3.2) (2025-10-20)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency @cloudquery/plugin-sdk-javascript to v0.1.30 ([#21449](https://github.com/cloudquery/cloudquery/issues/21449)) ([c55b6fa](https://github.com/cloudquery/cloudquery/commit/c55b6faff5df6b42b23096821963c9a0b9067e27))
+* **deps:** Update dependency dayjs to v1.11.18 ([#21437](https://github.com/cloudquery/cloudquery/issues/21437)) ([2c183b6](https://github.com/cloudquery/cloudquery/commit/2c183b608be7f8e19d310b9512175aec5bb755ff))
+* **deps:** Update dependency got to v14.4.9 ([#21438](https://github.com/cloudquery/cloudquery/issues/21438)) ([36e7b4f](https://github.com/cloudquery/cloudquery/commit/36e7b4faaa3b52fb751d21c97513da71b8171261))
+
+## [2.3.1](https://github.com/cloudquery/cloudquery/compare/plugins-source-airtable-v2.3.0...plugins-source-airtable-v2.3.1) (2025-09-04)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency @cloudquery/plugin-sdk-javascript to v0.1.29 ([#21305](https://github.com/cloudquery/cloudquery/issues/21305)) ([55490c0](https://github.com/cloudquery/cloudquery/commit/55490c0fc597c85a255f9f48febc1397892db482))
+* **deps:** Update eslint packages ([#21302](https://github.com/cloudquery/cloudquery/issues/21302)) ([d62bfa6](https://github.com/cloudquery/cloudquery/commit/d62bfa6813ba191a648427e72ccbccf8c0b6e68a))
+
+## [2.3.0](https://github.com/cloudquery/cloudquery/compare/plugins-source-airtable-v2.2.12...plugins-source-airtable-v2.3.0) (2025-07-30)
+
+
+### Features
+
+* Airtable Pagination ([#21050](https://github.com/cloudquery/cloudquery/issues/21050)) ([a55b446](https://github.com/cloudquery/cloudquery/commit/a55b446249cd9bebf6aeeb17d0bcf2f32338b8ee))
+
+
+### Bug Fixes
+
+* **deps:** Update dependency @cloudquery/plugin-sdk-javascript to v0.1.26 ([#20758](https://github.com/cloudquery/cloudquery/issues/20758)) ([aa66103](https://github.com/cloudquery/cloudquery/commit/aa661030695139305f2932fc1a59515adaf20caf))
+* **deps:** Update dependency @cloudquery/plugin-sdk-javascript to v0.1.27 ([#20944](https://github.com/cloudquery/cloudquery/issues/20944)) ([a187533](https://github.com/cloudquery/cloudquery/commit/a18753312b271103d6ac54b83ab1379ffabef1da))
+* **deps:** Update dependency @cloudquery/plugin-sdk-javascript to v0.1.28 ([#21051](https://github.com/cloudquery/cloudquery/issues/21051)) ([2f6625b](https://github.com/cloudquery/cloudquery/commit/2f6625be03210d3b55545ede7660ad620abd0eef))
+* **deps:** Update dependency got to v14.4.7 ([#20669](https://github.com/cloudquery/cloudquery/issues/20669)) ([bfe4714](https://github.com/cloudquery/cloudquery/commit/bfe4714dbac5feeffe47ca8cc7ebcf3bf0d6d008))
+
+## [2.2.12](https://github.com/cloudquery/cloudquery/compare/plugins-source-airtable-v2.2.11...plugins-source-airtable-v2.2.12) (2025-01-11)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency @cloudquery/plugin-sdk-javascript to v0.1.22 ([#20037](https://github.com/cloudquery/cloudquery/issues/20037)) ([ed72c7e](https://github.com/cloudquery/cloudquery/commit/ed72c7e568911ff91501bfb60c66e2b9f54ab7a7))
+* **deps:** Update dependency eslint-import-resolver-typescript to v3.7.0 ([#20056](https://github.com/cloudquery/cloudquery/issues/20056)) ([1a3d4c5](https://github.com/cloudquery/cloudquery/commit/1a3d4c5ca16cfd3b3afdbbe0fa44addd9cb89f2e))
+* **deps:** Update dependency typescript to v5.7.2 ([#20063](https://github.com/cloudquery/cloudquery/issues/20063)) ([6bfad80](https://github.com/cloudquery/cloudquery/commit/6bfad80cda36f39b04b9db67f512bc38317c6551))
+
+## [2.2.11](https://github.com/cloudquery/cloudquery/compare/plugins-source-airtable-v2.2.10...plugins-source-airtable-v2.2.11) (2024-12-03)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency @cloudquery/plugin-sdk-javascript to v0.1.21 ([#19827](https://github.com/cloudquery/cloudquery/issues/19827)) ([0a2fa6c](https://github.com/cloudquery/cloudquery/commit/0a2fa6c9db934a5ed45160bb8dc543951d543b08))
+* **deps:** Update dependency @types/uuid to v10 ([#19760](https://github.com/cloudquery/cloudquery/issues/19760)) ([0db420f](https://github.com/cloudquery/cloudquery/commit/0db420ff9048ebb2912060a5b043a982060617cb))
+* **deps:** Update dependency ajv to v8.17.1 ([#19739](https://github.com/cloudquery/cloudquery/issues/19739)) ([b361ac4](https://github.com/cloudquery/cloudquery/commit/b361ac4ef9121232940a78650728405eaf8a0da3))
+* **deps:** Update dependency ava to v6.2.0 ([#19740](https://github.com/cloudquery/cloudquery/issues/19740)) ([81bec64](https://github.com/cloudquery/cloudquery/commit/81bec64ebccd8538ac24e5233fd12310adc21e51))
+* **deps:** Update dependency change-case to v5.4.4 ([#19741](https://github.com/cloudquery/cloudquery/issues/19741)) ([807e17e](https://github.com/cloudquery/cloudquery/commit/807e17e90360103fd25f3fd3f3a4cac88d793492))
+* **deps:** Update dependency dot-prop to v9 ([#19761](https://github.com/cloudquery/cloudquery/issues/19761)) ([8060109](https://github.com/cloudquery/cloudquery/commit/8060109783b43111f4118923e88bf223ff3acc87))
+* **deps:** Update dependency eslint-plugin-import to v2.31.0 ([#19742](https://github.com/cloudquery/cloudquery/issues/19742)) ([f16ef7a](https://github.com/cloudquery/cloudquery/commit/f16ef7aeaa0d213a30e5d6c912858634e943bda5))
+* **deps:** Update dependency eslint-plugin-n to v16.6.2 ([#19744](https://github.com/cloudquery/cloudquery/issues/19744)) ([903a7a6](https://github.com/cloudquery/cloudquery/commit/903a7a6d6bf8356e23f96eae27e46aa3f96ccfe8))
+* **deps:** Update dependency eslint-plugin-prettier to v5.2.1 ([#19745](https://github.com/cloudquery/cloudquery/issues/19745)) ([67842fc](https://github.com/cloudquery/cloudquery/commit/67842fcc3f7e40ea17b9127add391b194d5bcdbe))
+* **deps:** Update dependency eslint-plugin-promise to v6.6.0 ([#19746](https://github.com/cloudquery/cloudquery/issues/19746)) ([250acab](https://github.com/cloudquery/cloudquery/commit/250acab41084909148bbad89ab390d3f95b33fbf))
+* **deps:** Update dependency eslint-plugin-unused-imports to v3.2.0 ([#19748](https://github.com/cloudquery/cloudquery/issues/19748)) ([973b662](https://github.com/cloudquery/cloudquery/commit/973b6629f6c41015bb29ec8c6b79982124cc26d5))
+* **deps:** Update dependency eslint-plugin-you-dont-need-lodash-underscore to v6.14.0 ([#19749](https://github.com/cloudquery/cloudquery/issues/19749)) ([21fb751](https://github.com/cloudquery/cloudquery/commit/21fb7519351bdafd054b591923b1f4d0836354b0))
+* **deps:** Update dependency got to v14.4.4 ([#19750](https://github.com/cloudquery/cloudquery/issues/19750)) ([2868b03](https://github.com/cloudquery/cloudquery/commit/2868b031548dd8e4a97d533af6d507793a0fd120))
+* **deps:** Update dependency got to v14.4.5 ([#19799](https://github.com/cloudquery/cloudquery/issues/19799)) ([80b493b](https://github.com/cloudquery/cloudquery/commit/80b493b45dbb46bcdd802954f83f934e1242d422))
+* **deps:** Update dependency node to v22 ([#19770](https://github.com/cloudquery/cloudquery/issues/19770)) ([ceff7a4](https://github.com/cloudquery/cloudquery/commit/ceff7a4b300b38ae0f1a0a110fbef42a424d3644))
+* **deps:** Update dependency typescript to v5.6.3 ([#19753](https://github.com/cloudquery/cloudquery/issues/19753)) ([2a0d83f](https://github.com/cloudquery/cloudquery/commit/2a0d83f76f724b71a792c6540285fd2f6a2ef0ed))
+* **deps:** Update dependency winston to v3.17.0 ([#19754](https://github.com/cloudquery/cloudquery/issues/19754)) ([8e84696](https://github.com/cloudquery/cloudquery/commit/8e84696eba59a74c04417e61e220b492e7687062))
+* **deps:** Update typescript-eslint monorepo ([#19756](https://github.com/cloudquery/cloudquery/issues/19756)) ([c9333df](https://github.com/cloudquery/cloudquery/commit/c9333df5f09a78f9d2aa91ea957dec680fe6ec12))
+
+## [2.2.10](https://github.com/cloudquery/cloudquery/compare/plugins-source-airtable-v2.2.9...plugins-source-airtable-v2.2.10) (2024-11-06)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency @cloudquery/plugin-sdk-javascript to v0.1.20 ([#19559](https://github.com/cloudquery/cloudquery/issues/19559)) ([e00d100](https://github.com/cloudquery/cloudquery/commit/e00d100e56d60b06215c7d51d0d8c6b76726f8b8))
+
+## [2.2.9](https://github.com/cloudquery/cloudquery/compare/plugins-source-airtable-v2.2.8...plugins-source-airtable-v2.2.9) (2024-10-02)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency @cloudquery/plugin-sdk-javascript to v0.1.19 ([#19276](https://github.com/cloudquery/cloudquery/issues/19276)) ([fb1f2d5](https://github.com/cloudquery/cloudquery/commit/fb1f2d5469622e4edd782f71cb95280ac035f694))
+* **deps:** Update dependency eslint to v8.57.1 ([#19264](https://github.com/cloudquery/cloudquery/issues/19264)) ([2baa628](https://github.com/cloudquery/cloudquery/commit/2baa62862a4015528a5748949728bac21854d9b5))
+
+## [2.2.8](https://github.com/cloudquery/cloudquery/compare/plugins-source-airtable-v2.2.7...plugins-source-airtable-v2.2.8) (2024-09-04)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency @cloudquery/plugin-sdk-javascript to v0.1.18 ([#19089](https://github.com/cloudquery/cloudquery/issues/19089)) ([d6cb6f5](https://github.com/cloudquery/cloudquery/commit/d6cb6f5ed6e6f884d330bac0d7cba7f467d2c554))
+* **deps:** Update dependency @types/yargs to v17.0.33 ([#19062](https://github.com/cloudquery/cloudquery/issues/19062)) ([da31bf8](https://github.com/cloudquery/cloudquery/commit/da31bf80a307285dd1dbe783714d9dcb2ca9bfe0))
+* **deps:** Update dependency dayjs to v1.11.13 ([#19063](https://github.com/cloudquery/cloudquery/issues/19063)) ([295644a](https://github.com/cloudquery/cloudquery/commit/295644acc71906e4457eb0cc34b9dcc52d0fe3ce))
+* **deps:** Update dependency eslint-import-resolver-typescript to v3.6.3 ([#19065](https://github.com/cloudquery/cloudquery/issues/19065)) ([77d8cc0](https://github.com/cloudquery/cloudquery/commit/77d8cc05c02d2c336796a6e24d3649a287efb356))
+
+## [2.2.7](https://github.com/cloudquery/cloudquery/compare/plugins-source-airtable-v2.2.6...plugins-source-airtable-v2.2.7) (2024-08-06)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency @cloudquery/plugin-sdk-javascript to v0.1.17 ([#18753](https://github.com/cloudquery/cloudquery/issues/18753)) ([59f0965](https://github.com/cloudquery/cloudquery/commit/59f096587ab1258a25a0759086517ecbe4789d2e))
+* **deps:** Update dependency dayjs to v1.11.12 ([#18800](https://github.com/cloudquery/cloudquery/issues/18800)) ([ecd6b3d](https://github.com/cloudquery/cloudquery/commit/ecd6b3d7c32587e3c2502ff48431652fd5c581db))
+
+## [2.2.6](https://github.com/cloudquery/cloudquery/compare/plugins-source-airtable-v2.2.5...plugins-source-airtable-v2.2.6) (2024-07-18)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency @cloudquery/plugin-sdk-javascript to v0.1.16 ([#18585](https://github.com/cloudquery/cloudquery/issues/18585)) ([385f3d8](https://github.com/cloudquery/cloudquery/commit/385f3d864e6c29394c5e9f9f9267972b6a355677))
+
+## [2.2.5](https://github.com/cloudquery/cloudquery/compare/plugins-source-airtable-v2.2.4...plugins-source-airtable-v2.2.5) (2024-07-09)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency @cloudquery/plugin-sdk-javascript to v0.1.15 ([#18496](https://github.com/cloudquery/cloudquery/issues/18496)) ([dc160b0](https://github.com/cloudquery/cloudquery/commit/dc160b0b699c29700a038204fcfa3c9046943967))
+* **deps:** Update module github.com/cloudquery/cloudquery-api-go to v1.12.0 ([#18448](https://github.com/cloudquery/cloudquery/issues/18448)) ([a5850e1](https://github.com/cloudquery/cloudquery/commit/a5850e1190e7d40437b3fbcea5c3b8f6b4b059ac))
+
+## [2.2.4](https://github.com/cloudquery/cloudquery/compare/plugins-source-airtable-v2.2.3...plugins-source-airtable-v2.2.4) (2024-06-25)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency @cloudquery/plugin-sdk-javascript to v0.1.14 ([#18326](https://github.com/cloudquery/cloudquery/issues/18326)) ([8e62624](https://github.com/cloudquery/cloudquery/commit/8e626245ba29171a262aecfbab96dcbebfda1723))
+
+## [2.2.3](https://github.com/cloudquery/cloudquery/compare/plugins-source-airtable-v2.2.2...plugins-source-airtable-v2.2.3) (2024-06-11)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency @cloudquery/plugin-sdk-javascript to v0.1.13 ([#18209](https://github.com/cloudquery/cloudquery/issues/18209)) ([ebde9fa](https://github.com/cloudquery/cloudquery/commit/ebde9fa873e0d3656b98c4714192337a6a63cc63))
+
+## [2.2.2](https://github.com/cloudquery/cloudquery/compare/plugins-source-airtable-v2.2.1...plugins-source-airtable-v2.2.2) (2024-06-04)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency @cloudquery/plugin-sdk-javascript to v0.1.12 ([#18095](https://github.com/cloudquery/cloudquery/issues/18095)) ([604611f](https://github.com/cloudquery/cloudquery/commit/604611f7dbe89cdb5e8d26b06c9516d9636442c9))
+
+## [2.2.1](https://github.com/cloudquery/cloudquery/compare/plugins-source-airtable-v2.2.0...plugins-source-airtable-v2.2.1) (2024-05-06)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency @cloudquery/plugin-sdk-javascript to v0.1.11 ([#17863](https://github.com/cloudquery/cloudquery/issues/17863)) ([38763bd](https://github.com/cloudquery/cloudquery/commit/38763bd611e69c04bcf3acc2ec5ad27af7bff129))
+* **deps:** Update dependency dayjs to v1.11.11 ([#17832](https://github.com/cloudquery/cloudquery/issues/17832)) ([68975d0](https://github.com/cloudquery/cloudquery/commit/68975d048091ffcef9dc2455c7c2ceb516aa3c42))
+* **deps:** Update dependency p-map to v7.0.2 ([#17836](https://github.com/cloudquery/cloudquery/issues/17836)) ([a1fdd15](https://github.com/cloudquery/cloudquery/commit/a1fdd1572b570e1dc38d7e5ae8d4df43caddd550))
+
+## [2.2.0](https://github.com/cloudquery/cloudquery/compare/plugins-source-airtable-v2.1.3...plugins-source-airtable-v2.2.0) (2024-04-12)
+
+
+### Features
+
+* Add reference to running in a Containerized Environment doc ([#17593](https://github.com/cloudquery/cloudquery/issues/17593)) ([9b07ab3](https://github.com/cloudquery/cloudquery/commit/9b07ab328eb8b3ef7fab61c9d8458244cc33af93))
+
+## [2.1.3](https://github.com/cloudquery/cloudquery/compare/plugins-source-airtable-v2.1.2...plugins-source-airtable-v2.1.3) (2024-04-11)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency @cloudquery/plugin-sdk-javascript to v0.1.10 ([#17590](https://github.com/cloudquery/cloudquery/issues/17590)) ([ef50ccb](https://github.com/cloudquery/cloudquery/commit/ef50ccbcceb317b5c9a3f0177dffebbdd76e95a2))
+
+## [2.1.2](https://github.com/cloudquery/cloudquery/compare/plugins-source-airtable-v2.1.1...plugins-source-airtable-v2.1.2) (2024-04-02)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency @cloudquery/plugin-sdk-javascript to v0.1.8 ([#17442](https://github.com/cloudquery/cloudquery/issues/17442)) ([27fc0a4](https://github.com/cloudquery/cloudquery/commit/27fc0a413e30c41b9b868ff50d9a1a5ba163a103))
+* **deps:** Update dependency @cloudquery/plugin-sdk-javascript to v0.1.9 ([#17445](https://github.com/cloudquery/cloudquery/issues/17445)) ([3093aaf](https://github.com/cloudquery/cloudquery/commit/3093aaf010baa47d6721b2d1a03bc71b0f694d21))
+* **deps:** Update dependency @tsconfig/node20 to v20.1.4 ([#17430](https://github.com/cloudquery/cloudquery/issues/17430)) ([2e85b73](https://github.com/cloudquery/cloudquery/commit/2e85b737af23099d028954c9176e638eee42fa4b))
+* **deps:** Update dependency camelcase-keys to v9.1.3 ([#17433](https://github.com/cloudquery/cloudquery/issues/17433)) ([8c73200](https://github.com/cloudquery/cloudquery/commit/8c732004f3a7b669c02a43c8159d018f6d5bfa32))
+* **deps:** Update dependency eslint-plugin-import to v2.29.1 ([#17436](https://github.com/cloudquery/cloudquery/issues/17436)) ([d07bb84](https://github.com/cloudquery/cloudquery/commit/d07bb84817d1054104f360761e6fea127360513f))
+* **deps:** Update dependency p-map to v7.0.1 ([#17438](https://github.com/cloudquery/cloudquery/issues/17438)) ([7d417c5](https://github.com/cloudquery/cloudquery/commit/7d417c594587be53cea6563ddbae9c17eb5e4655))
+
+## [2.1.1](https://github.com/cloudquery/cloudquery/compare/plugins-source-airtable-v2.1.0...plugins-source-airtable-v2.1.1) (2024-03-05)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency @cloudquery/plugin-sdk-javascript to v0.1.7 ([#16990](https://github.com/cloudquery/cloudquery/issues/16990)) ([73fdf0b](https://github.com/cloudquery/cloudquery/commit/73fdf0be450689917e86f2fbb1b4b2f7fe02279f))
+* **deps:** Update dependency @types/uuid to v9.0.8 ([#16983](https://github.com/cloudquery/cloudquery/issues/16983)) ([cb0c9b2](https://github.com/cloudquery/cloudquery/commit/cb0c9b213936b662b385f81400fe43edd8e93fea))
+
+## [2.1.0](https://github.com/cloudquery/cloudquery/compare/plugins-source-airtable-v2.0.2...plugins-source-airtable-v2.1.0) (2024-02-13)
+
+
+### Features
+
+* Add JSON schema to `airtable` source plugin spec ([#16594](https://github.com/cloudquery/cloudquery/issues/16594)) ([d81e834](https://github.com/cloudquery/cloudquery/commit/d81e834dc1c52bb5c3806f95c6cc2fe2c7800332))
+
+
+### Bug Fixes
+
+* **deps:** Update dependency @cloudquery/plugin-sdk-javascript to v0.1.6 ([#16583](https://github.com/cloudquery/cloudquery/issues/16583)) ([b4592fe](https://github.com/cloudquery/cloudquery/commit/b4592fe4a09c4d2f0428ba948d4eeadd0a1f0cd3))
+
+## [2.0.2](https://github.com/cloudquery/cloudquery/compare/plugins-source-airtable-v2.0.1...plugins-source-airtable-v2.0.2) (2024-02-01)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency @cloudquery/plugin-sdk-javascript to v0.1.5 ([#16461](https://github.com/cloudquery/cloudquery/issues/16461)) ([10907cf](https://github.com/cloudquery/cloudquery/commit/10907cf0e5533cd0829c05486fea2d89694ab1fe))
+
+## [2.0.1](https://github.com/cloudquery/cloudquery/compare/plugins-source-airtable-v2.0.0...plugins-source-airtable-v2.0.1) (2024-01-15)
+
+
+### Bug Fixes
+
+* **deps:** Update dependency @cloudquery/plugin-sdk-javascript to v0.1.4 ([#16011](https://github.com/cloudquery/cloudquery/issues/16011)) ([8a2c285](https://github.com/cloudquery/cloudquery/commit/8a2c285c4dac39dc1a42d67575be90428c515aff))
+
+## [2.0.0](https://github.com/cloudquery/cloudquery/compare/plugins-source-airtable-v1.1.3...plugins-source-airtable-v2.0.0) (2023-12-29)
+
+
+### ⚠ BREAKING CHANGES
+
+* Require Node.js 20
+
+### Features
+
+* Add package command ([a857746](https://github.com/cloudquery/cloudquery/commit/a857746fa17e24ee8cbab03e4cee1e26dbbd614b))
+
+## [1.1.3](https://github.com/cloudquery/cloudquery/compare/plugins-source-airtable-v1.1.2...plugins-source-airtable-v1.1.3) (2023-11-16)
+
+
+### Bug Fixes
+
+* **deps:** Update module github.com/docker/docker to v24 [SECURITY] ([#15060](https://github.com/cloudquery/cloudquery/issues/15060)) ([41acd0e](https://github.com/cloudquery/cloudquery/commit/41acd0e4ac63221e90cca89a7137a8685692267d))
+
+## [1.1.2](https://github.com/cloudquery/cloudquery/compare/plugins-source-airtable-v1.1.1...plugins-source-airtable-v1.1.2) (2023-09-27)
+
+
+### Bug Fixes
+
+* Tidy go.mod ([#14061](https://github.com/cloudquery/cloudquery/issues/14061)) ([11bd971](https://github.com/cloudquery/cloudquery/commit/11bd971f6a0089c92e47af6be24f552b2d920f21))
+
+## [1.1.1](https://github.com/cloudquery/cloudquery/compare/plugins-source-airtable-v1.1.0...plugins-source-airtable-v1.1.1) (2023-09-05)
+
+
+### Bug Fixes
+
+* **deps:** Update github.com/99designs/go-keychain digest to 9cf53c8 ([#13561](https://github.com/cloudquery/cloudquery/issues/13561)) ([a170256](https://github.com/cloudquery/cloudquery/commit/a17025657e92b017fe3c8bd37abfaa2354e6e818))
+
+## [1.1.0](https://github.com/cloudquery/cloudquery/compare/plugins-source-airtable-v1.0.1...plugins-source-airtable-v1.1.0) (2023-08-18)
+
+
+### Features
+
+* Improve logging of discovery phase ([#13179](https://github.com/cloudquery/cloudquery/issues/13179)) ([5c7776f](https://github.com/cloudquery/cloudquery/commit/5c7776f332bc6a257f216b22a1fceefbca46357b))
+
+## [1.0.1](https://github.com/cloudquery/cloudquery/compare/plugins-source-airtable-v1.0.0...plugins-source-airtable-v1.0.1) (2023-08-17)
+
+
+### Bug Fixes
+
+* Airtable `dateTime` type handling ([#13174](https://github.com/cloudquery/cloudquery/issues/13174)) ([275a526](https://github.com/cloudquery/cloudquery/commit/275a526ea19fb166df816a22f0818188365c4a65))
+
+## 1.0.0 (2023-08-17)
+
+
+### Features
+
+* Initial release ([#13162](https://github.com/cloudquery/cloudquery/issues/13162)) ([558f596](https://github.com/cloudquery/cloudquery/commit/558f596a2c4868413b978a5c2a575e8654e617f9))
+
+
+### Bug Fixes
+
+* Rename spec option from `api_key` to `access_token` ([#13165](https://github.com/cloudquery/cloudquery/issues/13165)) ([5d9b33c](https://github.com/cloudquery/cloudquery/commit/5d9b33c6f706360f138788b350b52c9d8c205ae4))

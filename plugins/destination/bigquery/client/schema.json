@@ -1,0 +1,199 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/cloudquery/cloudquery/plugins/destination/bigquery/v4/client/spec",
+  "$ref": "#/$defs/Spec",
+  "$defs": {
+    "Duration": {
+      "type": "string",
+      "pattern": "^[-+]?([0-9]*(\\.[0-9]*)?[a-z]+)+$",
+      "title": "CloudQuery configtype.Duration"
+    },
+    "RecursiveText": {
+      "properties": {
+        "chunk_size": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "chunk_overlap": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "chunk_size",
+        "chunk_overlap"
+      ]
+    },
+    "Spec": {
+      "properties": {
+        "project_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The id of the project where the destination BigQuery database resides."
+        },
+        "dataset_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The name of the BigQuery dataset within the project, e.g. `my_dataset`.\n This dataset needs to be created before running a sync or migration."
+        },
+        "dataset_location": {
+          "type": "string",
+          "description": "The data location of the BigQuery dataset. If set, will be used as the default location for job operations.\nPro-tip: this can solve \"dataset not found\" issues for newly created datasets."
+        },
+        "time_partitioning": {
+          "type": "string",
+          "enum": [
+            "none",
+            "hour",
+            "day",
+            "month",
+            "year"
+          ],
+          "description": "The time partitioning to use when creating tables. The partition time column used will always be `_cq_sync_time` so that all rows for a sync run will be partitioned on the hour/day/month/year the sync started.",
+          "default": "none"
+        },
+        "time_partitioning_expiration": {
+          "$ref": "#/$defs/Duration",
+          "description": "The duration to keep the partitions. Only applicable if `time_partitioning` is set to a value other than `none`. A value of 0 means no expiration."
+        },
+        "service_account_key_json": {
+          "type": "string",
+          "description": "GCP service account key content.\nThis allows for using different service accounts for the GCP source and BigQuery destination.\nIf using service account keys, it is best to use [environment or file variable substitution](https://www.cloudquery.io/docs/cli/managing-cloudquery/environment-variables)."
+        },
+        "endpoint": {
+          "type": "string",
+          "description": "The BigQuery API endpoint to use. This is useful for testing against a local emulator."
+        },
+        "batch_size": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Number of records to write before starting a new object.",
+          "default": 10000
+        },
+        "batch_size_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Number of bytes (as Arrow buffer size) to write before starting a new object.",
+          "default": 5242880
+        },
+        "batch_timeout": {
+          "$ref": "#/$defs/Duration",
+          "description": "Maximum interval between batch writes.",
+          "default": "10s"
+        },
+        "client_project_id": {
+          "type": "string",
+          "description": "Identifies the project context bq client should execute in. Defaults to the project_id. You can set it to *detect-project-id* to automatically detect project id from credentials in the environment."
+        },
+        "text_embeddings": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/TextEmbeddingsSpec",
+              "description": "Optional: Configuration for creating text embeddings for certain tables"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "project_id",
+        "dataset_id"
+      ]
+    },
+    "TableConfig": {
+      "properties": {
+        "source_table_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target_table_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "embed_columns": {
+          "oneOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "minItems": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "metadata_columns": {
+          "oneOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "source_table_name",
+        "target_table_name",
+        "embed_columns"
+      ],
+      "description": "TableConfig defines per-source-table embedding configuration."
+    },
+    "TextEmbeddingsSpec": {
+      "properties": {
+        "remote_model_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tables": {
+          "oneOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/TableConfig"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "text_splitter": {
+          "$ref": "#/$defs/TextSplitter"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "remote_model_name"
+      ]
+    },
+    "TextSplitter": {
+      "properties": {
+        "recursive_text": {
+          "$ref": "#/$defs/RecursiveText"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "recursive_text"
+      ],
+      "description": "TextSplitter defines how source text should be split into chunks for embedding."
+    }
+  }
+}

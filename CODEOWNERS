@@ -1,2 +1,13 @@
-cli/*       @yevgenypats
-plugins/source/* @cloudquery/cloudquery-opensource
+* @cloudquery/backend
+
+**/go.mod
+**/go.sum
+.release-please-manifest.json
+**/CHANGELOG.md
+**/go.mod.tpl
+**/pnpm-lock.yaml
+**/coverage.md
+**/uv.lock
+plugins/source/*/docs/tables/*.md
+plugins/source/**/mocks/*.go
+plugins/source/**/spec/schema.json

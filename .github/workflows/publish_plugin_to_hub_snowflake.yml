@@ -1,0 +1,199 @@
+name: Publish plugin Snowflake to hub
+on:
+  push:
+    tags:
+      - "plugins-destination-snowflake-v*.*.*"
+
+env:
+  ui_dir_name: cloud-config-ui
+
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      plugin_name: ${{ steps.split.outputs.plugin_name }}
+      plugin_kind: ${{ steps.split.outputs.plugin_kind }}
+      plugin_version: ${{ steps.split.outputs.plugin_version }}
+      plugin_dir: ${{ steps.split.outputs.plugin_dir }}
+      prerelease: ${{ steps.semver_parser.outputs.prerelease }}
+      ui_dir_arg: ${{ steps.check-ui-directory.outputs.result }}
+    steps:
+      - name: Split tag
+        id: split
+        run: |
+          tag=${{ github.ref_name }}
+          plugin_kind=$(echo $tag | cut -d- -f2)
+          plugin_name=$(echo $tag | cut -d- -f3)
+          plugin_version=$(echo $tag | cut -d- -f4-)
+          echo "plugin_name=${plugin_name}" >> $GITHUB_OUTPUT
+          echo "plugin_kind=${plugin_kind}" >> $GITHUB_OUTPUT
+          echo "plugin_version=${plugin_version}" >> $GITHUB_OUTPUT
+          echo "plugin_dir=plugins/${plugin_kind}/${plugin_name}" >> $GITHUB_OUTPUT
+      # Fail if not a valid SemVer string
+      - name: Parse semver string
+        uses: booxmedialtd/ws-action-parse-semver@7784200024d6b3fc01253e617ec0168daf603de3
+        id: semver_parser
+        with:
+          input_string: ${{steps.split.outputs.plugin_version}}
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        id: check-ui-directory
+        env:
+          PLUGIN_DIR: ${{steps.split.outputs.plugin_dir}}
+        with:
+          script: |
+            const fs = require('fs').promises;
+            const path = require('path');
+            const pluginFiles = await fs.readdir(process.env.PLUGIN_DIR);
+            if (pluginFiles.includes(process.env.ui_dir_name)) {
+              return '--ui-dir ' + process.env.PLUGIN_DIR + '/' + process.env.ui_dir_name + '/build';
+            }
+            return '';
+          result-encoding: string
+
+  build-config-ui:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    needs: prepare
+    steps:
+      - name: Checkout
+        if: needs.prepare.outputs.ui_dir_arg != ''
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Use Node.js LTS
+        if: needs.prepare.outputs.ui_dir_arg != ''
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: "lts/*"
+          cache: "npm"
+          cache-dependency-path: "${{needs.prepare.outputs.plugin_dir}}/${{env.ui_dir_name}}/package-lock.json"
+
+      - name: Install dependencies
+        if: needs.prepare.outputs.ui_dir_arg != ''
+        run: npm ci
+        working-directory: "${{needs.prepare.outputs.plugin_dir}}/${{env.ui_dir_name}}"
+
+      - name: Build config UI
+        if: needs.prepare.outputs.ui_dir_arg != ''
+        working-directory: "${{needs.prepare.outputs.plugin_dir}}/${{env.ui_dir_name}}"
+        run: |
+          npm run build
+
+  publish-plugin-to-hub:
+    timeout-minutes: 60
+    permissions:
+      contents: write
+      pull-requests: write
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/gythialy/golang-cross:1.26.4
+      env:
+        GOAMD64: v1
+    needs:
+      - prepare
+      - build-config-ui
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+      # https://github.com/actions/checkout/issues/2031
+      - name: Set safe directory
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - name: Set up Go 1.x
+        id: setup-go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version-file: ${{ needs.prepare.outputs.plugin_dir }}/go.mod
+          cache: false
+
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ steps.setup-go.outputs.go-version }}-publish-plugin-to-hub-cache-plugins-${{ needs.prepare.outputs.plugin_kind }}-${{ needs.prepare.outputs.plugin_name }}-${{ hashFiles(format('{0}/{1}', needs.prepare.outputs.plugin_dir, 'go.sum')) }}
+          restore-keys: |
+            ${{ runner.os }}-go-${{ steps.setup-go.outputs.go-version }}-publish-plugin-to-hub-cache-plugins-${{ needs.prepare.outputs.plugin_kind }}-${{ needs.prepare.outputs.plugin_name }}-
+
+      - name: Use Node.js LTS
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: "lts/*"
+
+      - name: Install shell escape
+        run: |
+          npm install shell-escape@0.2.0
+
+      - name: Get Release Notes
+        id: release-notes
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        env:
+          PRERELEASE: ${{ needs.prepare.outputs.prerelease }}
+        with:
+          result-encoding: string
+          script: |
+            const shellescape = require('shell-escape');
+            const { PRERELEASE } = process.env;
+            if (PRERELEASE) {
+              return shellescape(["This is a pre-release version of the plugin and should be used for testing purposes only"])
+            }
+            const { data } = await github.rest.repos.getReleaseByTag({
+              owner: "cloudquery",
+              repo: context.repo.repo,
+              tag: context.ref.replace('refs/tags/', ''),
+            });
+            return shellescape([data.body]);
+
+      - name: Find and Replace
+        uses: jacobtomlinson/gha-find-replace@b19bfcb2a015af55fd6e160d1d1987e887f8c163
+        with:
+          find: "(?i)version_${{ needs.prepare.outputs.plugin_kind }}_${{ needs.prepare.outputs.plugin_name }}"
+          replace: ${{ needs.prepare.outputs.plugin_version }}
+          include: ${{ needs.prepare.outputs.plugin_dir }}/docs/*.md
+
+      - name: Run package command
+        working-directory: ${{ needs.prepare.outputs.plugin_dir }}
+        run: |
+          go run main.go package -m ${{ steps.release-notes.outputs.result }} ${{ needs.prepare.outputs.plugin_version }} .
+      - name: Setup CloudQuery
+        uses: cloudquery/setup-cloudquery@757b19eb8496cf9e89a78de54f2c677253f54f6b # v5.0.3
+        with:
+          version: v6.47.0
+
+      - name: Publish plugin to hub
+        working-directory: ${{ needs.prepare.outputs.plugin_dir }}
+        env:
+          CLOUDQUERY_API_KEY: ${{ secrets.CLOUDQUERY_API_KEY }}
+        run: |
+          cloudquery plugin publish --finalize ${{ needs.prepare.outputs.ui_dir_arg }}
+
+      - name: Push Tag prefixed with plugin directory
+        if: needs.prepare.outputs.prerelease == ''
+        run: |
+          git tag ${{ needs.prepare.outputs.plugin_dir }}/${{ needs.prepare.outputs.plugin_version }} && git push origin ${{ needs.prepare.outputs.plugin_dir }}/${{ needs.prepare.outputs.plugin_version }}
+
+      - name: Comment on release PR
+        if: needs.prepare.outputs.prerelease == ''
+        continue-on-error: true
+        uses: ./.github/actions/release-pr-hub-comment
+        with:
+          plugin_kind: ${{ needs.prepare.outputs.plugin_kind }}
+          plugin_name: ${{ needs.prepare.outputs.plugin_name }}
+          plugin_version: ${{ needs.prepare.outputs.plugin_version }}
+          gh_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Slack Notify
+        uses: ravsamhq/notify-slack-action@0670a0482d2a919531ba3b219e0c535fe4fcc791
+        if: always()
+        with:
+          status: ${{ job.status }}
+          notify_when: "failure"
+          notification_title: "Failed to publish to hub ${{ needs.prepare.outputs.plugin_kind }}-${{ needs.prepare.outputs.plugin_name }}@${{ needs.prepare.outputs.plugin_version }}"
+          footer: "<{repo_url}|{repo}>"
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.ALERTS_INTEGRATIONS_SLACK_WEBHOOK_URL }}

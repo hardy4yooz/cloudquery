@@ -1,0 +1,144 @@
+---
+name: MongoDB
+stage: GA
+title: MongoDB Destination Plugin
+description: CloudQuery MongoDB destination plugin documentation
+---
+# MongoDB Destination Plugin
+
+:badge
+
+This destination plugin lets you sync data from any CloudQuery source to a MongoDB database.
+
+Supported database versions:
+
+- MongoDB >= 4.4 (The same minimum version supported by the official [Go driver v2](https://github.com/mongodb/mongo-go-driver))
+
+## Configuration
+
+### Example
+
+:configuration
+
+:::callout{type="info"}
+Make sure to use [environment variable substitution](https://www.cloudquery.io/docs/cli/managing-cloudquery/environment-variables) in production instead of committing the credentials to the configuration file directly.
+:::
+
+The MongoDB destination utilizes batching, and supports [`batch_size`](https://www.cloudquery.io/docs/cli/integrations/destinations#batch_size) and [`batch_size_bytes`](https://www.cloudquery.io/docs/cli/integrations/destinations#batch_size_bytes). 
+
+### MongoDB Spec
+
+This is the (nested) spec used by the MongoDB destination Plugin.
+
+- `connection_string` (`string`) (required)
+
+  MongoDB URI as described in the official MongoDB [documentation](https://www.mongodb.com/docs/manual/reference/connection-string/).
+  
+  Example connection strings:
+  
+  - `"mongodb://username:password@hostname:port/database"` basic connection
+  - `"mongodb+srv://username:password@cluster.example.com/database"` connecting to a MongoDB Atlas cluster
+  - `"mongodb://localhost:27017/myDatabase?authSource=admin"` specify authentication source
+
+- `database` (`string`) (required)
+
+  Database to sync the data to.
+
+- `batch_size` (`integer`) (optional) (default: `1000`)
+
+  Maximum amount of items that may be grouped together to be written in a single write.
+
+- `batch_size_bytes` (`integer`) (optional) (default: `4194304` (= 4 MiB))
+
+  Maximum size of items that may be grouped together to be written in a single write.
+
+- `aws_credentials` ([aws_credentials](#aws_credentials)) (optional)
+
+  Optional parameters to enable usage of AWS IAM credentials
+
+- `write_retry` ([write_retry](#write_retry)) (optional)
+
+  Opt-in exponential-backoff retry around each write batch to absorb transient network errors (e.g. `write tcp ...: broken pipe`) that the driver's single built-in retry can't recover from. Disabled by default.
+
+- `workload_identity_federation` ([workload_identity_federation](#workload_identity_federation)) (optional)
+
+  Optional parameters to enable MongoDB Atlas [Workload Identity Federation](https://www.mongodb.com/docs/atlas/workload-oidc/) (`MONGODB-OIDC`). Mutually exclusive with `aws_credentials`.
+
+
+### write_retry
+
+Retries are **disabled by default**. Set `max_attempts` >= 2 to enable application-level retries.
+
+- `max_attempts` (`integer`) (optional) (default: `1`)
+
+  Maximum number of write attempts per batch, including the initial attempt. The default of `1` means no application-level retries — the MongoDB driver's own single retry still applies.
+
+- `max_backoff` (`duration`) (optional) (default: `"10s"`)
+
+  Maximum backoff between retry attempts. Initial backoff and jitter use the underlying retry library's defaults.
+
+- `use_transactions` (`bool`) (optional) (default: `false`)
+
+  When `true`, each retried write batch runs inside a MongoDB [transaction](https://www.mongodb.com/docs/manual/core/transactions/) so a retry that follows a partially-applied write rolls back the partial state before re-attempting. This is what makes retries safe on `write_mode: append` tables: without a transaction, an ambiguous failure (server processed the write but the response was lost) can produce duplicate documents, because `_id` is server-generated and the retry has no way to dedupe against the previous attempt.
+
+  Requires a replica set, sharded cluster, or load-balanced deployment — transactions are not supported on standalone MongoDB, and enabling this against a standalone server will surface a driver error at write time. Has no effect when `max_attempts` is `1`.
+
+:::callout{type="warning"}
+Only enable retries (`max_attempts` >= 2) when the source uses `write_mode: overwrite`, **or** set `use_transactions: true` on a replica-set/sharded deployment. With `write_mode: append` and no transaction, a retry triggered by an ambiguous failure (e.g. the server processed the write but the response was lost) can produce duplicate documents, since `_id` is server-generated and the retry has no way to dedupe against the previous attempt. Overwrite mode is unaffected — writes are performed as upserts keyed on the primary key and are naturally idempotent.
+:::
+
+
+
+### aws_credentials
+
+- `default` (`bool`) (optional)
+
+  If set to `true` then AWS SDK will use the default credentials based on the AWS Credential chain
+
+- `local_profile` (`string`)
+
+  [Local profile](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html) to use to authenticate this account with.
+  Please note this should be set to the name of the profile.
+
+  For example, with the following credentials file:
+
+  ```toml copy
+  [default]
+  aws_access_key_id=xxxx
+  aws_secret_access_key=xxxx
+
+  [user1]
+  aws_access_key_id=xxxx
+  aws_secret_access_key=xxxx
+  ```
+
+  `local_profile` should be set to either `default` or `user1`.
+
+- `role_arn` (`string`)
+
+  If specified will use this to assume role.
+
+- `role_session_name` (`string`)
+
+  If specified will use this session name when assume role to `role_arn`.
+
+- `external_id` (`string`)
+
+  If specified will use this when assuming role to `role_arn`.
+
+
+### workload_identity_federation
+
+Enables MongoDB Atlas [Workload Identity Federation](https://www.mongodb.com/docs/atlas/workload-oidc/) using the built-in `MONGODB-OIDC` machine (workload) flows of the MongoDB driver. Requires an Atlas M10+ dedicated cluster running MongoDB 7.0.11 or later with Workload Identity Federation configured. Mutually exclusive with `aws_credentials`.
+
+- `environment` (`string`) (required)
+
+  The workload environment the driver obtains an OIDC token from. One of `k8s` (Kubernetes / EKS service account), `azure` (Azure managed identity) or `gcp` (Google service account).
+
+- `token_resource` (`string`)
+
+  The audience configured on the MongoDB deployment. Required when `environment` is `azure` or `gcp`; must not be set for `k8s`.
+
+- `username` (`string`)
+
+  The Azure managed-identity client ID (or application ID). Only valid when `environment` is `azure`; may be omitted if the VM has a single managed identity.

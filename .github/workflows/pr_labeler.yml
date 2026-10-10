@@ -1,0 +1,25 @@
+# Warning, do not check out untrusted code with
+# the pull_request_target event.
+# the current workflow IS safe as long as you dont checkout untrusted code
+# https://nathandavison.com/blog/github-actions-and-the-threat-of-malicious-pull-requests
+on:
+  pull_request_target:
+    types: [opened, edited, synchronize, reopened]
+name: PR Labeler
+permissions:
+  contents: read
+
+jobs:
+  triage-prs:
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: write
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/labeler@bf12e9b00b37c5c0ca2b87b79b2daf7891dbda13 # v7
+        continue-on-error: true
+        with:
+          sync-labels: true
+          configuration-path: .github/pr_labeler.yml

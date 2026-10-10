@@ -1,0 +1,338 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/cloudquery/cloudquery/plugins/destination/postgresql/v8/client/spec/spec",
+  "$ref": "#/$defs/Spec",
+  "$defs": {
+    "AWSIAMAuthSpec": {
+      "properties": {
+        "service": {
+          "type": "string",
+          "enum": [
+            "rds"
+          ],
+          "description": "The AWS database service to authenticate to.",
+          "default": "rds"
+        },
+        "region": {
+          "type": "string",
+          "description": "AWS region the database is in, for example `us-east-1`. If empty, the region\nis resolved from the standard AWS configuration sources (the `AWS_REGION`\nenvironment variable, the shared config file, ...).",
+          "examples": [
+            "us-east-1"
+          ]
+        },
+        "endpoint": {
+          "type": "string",
+          "description": "The endpoint the token is signed for, as `host` or `host:port`. If empty, the\nhost and port from `connection_string` are used; if only a host is given, the\nport from `connection_string` is used. Set this when the plugin connects\nthrough a different address than the database endpoint itself, such as an SSH\ntunnel or a CNAME.",
+          "examples": [
+            "mydb.123456789012.us-east-1.rds.amazonaws.com:5432"
+          ]
+        },
+        "local_profile": {
+          "type": "string",
+          "description": "[Local profile](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html)\nto use to authenticate with. This should be set to the name of the profile.",
+          "examples": [
+            "my_aws_profile"
+          ]
+        },
+        "role_arn": {
+          "type": "string",
+          "pattern": "^(arn(:[^:\n]*){5}([:/].*)?)?$",
+          "description": "If specified, this role is assumed and its credentials are used to sign the\nauthentication token."
+        },
+        "role_session_name": {
+          "type": "string",
+          "description": "If specified, this session name is used when assuming `role_arn`.",
+          "examples": [
+            "my_aws_role_session_name"
+          ]
+        },
+        "external_id": {
+          "type": "string",
+          "description": "If specified, this external ID is used when assuming `role_arn`.",
+          "examples": [
+            "external_id"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "AWSIAMAuthSpec enables IAM database authentication for AWS-managed, PostgreSQL-compatible databases."
+    },
+    "Duration": {
+      "type": "string",
+      "pattern": "^[-+]?([0-9]*(\\.[0-9]*)?[a-z]+)+$",
+      "title": "CloudQuery configtype.Duration"
+    },
+    "LakebaseSpec": {
+      "properties": {
+        "endpoint": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The Lakebase database endpoint resource name, in the format\n`projects/{project_id}/branches/{branch_id}/endpoints/{endpoint_id}`."
+        },
+        "host": {
+          "type": "string",
+          "description": "Databricks workspace host, for example `https://your-workspace.cloud.databricks.com`.\nIf empty, the Databricks SDK resolves it from the `DATABRICKS_HOST` environment\nvariable (or other default Databricks configuration sources)."
+        },
+        "client_id": {
+          "type": "string",
+          "description": "Databricks service principal OAuth client ID.\nIf empty, the Databricks SDK resolves it from the `DATABRICKS_CLIENT_ID`\nenvironment variable (or other default Databricks configuration sources)."
+        },
+        "client_secret": {
+          "type": "string",
+          "description": "Databricks service principal OAuth client secret.\nIf empty, the Databricks SDK resolves it from the `DATABRICKS_CLIENT_SECRET`\nenvironment variable (or other default Databricks configuration sources)."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "endpoint"
+      ],
+      "description": "LakebaseSpec enables connecting to Databricks Lakebase, a PostgreSQL-compatible OLTP database."
+    },
+    "LogLevel": {
+      "type": "string",
+      "enum": [
+        "",
+        "none",
+        "error",
+        "warn",
+        "info",
+        "debug",
+        "trace"
+      ],
+      "title": "PostgreSQL driver log level",
+      "description": "Defines what [`pgx`](https://github.com/jackc/pgx) call events should be logged.",
+      "default": "error"
+    },
+    "OpenAIEmbedding": {
+      "properties": {
+        "api_key": {
+          "type": "string",
+          "minLength": 1,
+          "title": "OpenAI API Key"
+        },
+        "model_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dimensions": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "api_key",
+        "model_name"
+      ],
+      "description": "OpenAIEmbedding holds embedding provider settings."
+    },
+    "PgVectorConfig": {
+      "properties": {
+        "tables": {
+          "oneOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PgVectorTableConfig"
+              },
+              "type": "array",
+              "minItems": 1,
+              "description": "Tables to create embeddings for."
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "text_splitter": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/PgVectorTextSplitter",
+              "description": "Optional text splitting configuration. If set, all sub-configurations must be set."
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "openai_embedding": {
+          "$ref": "#/$defs/OpenAIEmbedding",
+          "description": "OpenAI embedding provider configuration. Required if PgVectorConfig is set."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "tables",
+        "openai_embedding"
+      ],
+      "description": "PgVectorConfig holds configuration for creating embeddings and storing them with pgvector."
+    },
+    "PgVectorRecursiveText": {
+      "properties": {
+        "chunk_size": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "chunk_overlap": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "chunk_size",
+        "chunk_overlap"
+      ]
+    },
+    "PgVectorTableConfig": {
+      "properties": {
+        "source_table_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target_table_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "embed_columns": {
+          "oneOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array",
+              "minItems": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "metadata_columns": {
+          "oneOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "source_table_name",
+        "target_table_name",
+        "embed_columns"
+      ],
+      "description": "PgVectorTableConfig defines per-source-table embedding configuration."
+    },
+    "PgVectorTextSplitter": {
+      "properties": {
+        "recursive_text": {
+          "$ref": "#/$defs/PgVectorRecursiveText"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "recursive_text"
+      ],
+      "description": "PgVectorTextSplitter defines how source text should be split into chunks for embedding."
+    },
+    "Spec": {
+      "properties": {
+        "connection_string": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Connection string to connect to the database. This can be a DSN or a URI, for example:\n\n- `\"user=user password=pass host=localhost port=5432 dbname=mydb sslmode=disable\"` DSN format\n- `\"postgres://user:pass@localhost:5432/mydb?sslmode=prefer\"` connect with tcp and prefer TLS\n- `\"postgres://user:pass@localhost:5432/mydb?sslmode=disable\u0026search_path=myschema\"` connect with tcp, disable TLS and use a custom schema",
+          "examples": [
+            "${POSTGRESQL_CONNECTION_STRING}"
+          ]
+        },
+        "pgx_log_level": {
+          "$ref": "#/$defs/LogLevel",
+          "description": "Available: `error`, `warn`, `info`, `debug`, `trace`.\nDefines what [`pgx`](https://github.com/jackc/pgx) call events should be logged."
+        },
+        "batch_size": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Maximum number of items that may be grouped together to be written in a single write.",
+          "default": 10000
+        },
+        "batch_size_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Maximum size of items that may be grouped together to be written in a single write.",
+          "default": 100000000
+        },
+        "batch_timeout": {
+          "$ref": "#/$defs/Duration",
+          "description": "Maximum interval between batch writes.",
+          "default": "60s"
+        },
+        "create_performance_indexes": {
+          "type": "boolean",
+          "description": "Option to create specific indexes to improve deletion performance",
+          "default": false
+        },
+        "use_copy_from": {
+          "type": "boolean",
+          "description": "Write rows with the PostgreSQL `COPY` protocol instead of `INSERT` statements.\n\n`COPY` sends a batch as a single statement rather than one statement per row,\nwhich is substantially faster against a remote database. Tables with a\nprimary key are copied into a temporary staging table and merged into the\ntarget, since `COPY` has no `ON CONFLICT` of its own.\n\nRows repeating a primary key within one batch are collapsed before the merge,\nkeeping the last one, so a database-side trigger fires once rather than once\nper row.\n\nTables with a primary key are still written to by an `INSERT`, so row-level\nsecurity and rewrite rules behave as before. Tables without one are copied\nstraight in: rewrite rules are not applied, and row-level security makes the\nwrite fail, since PostgreSQL rejects `COPY FROM` on such a table.\n\nIt has no effect on CockroachDB, CrateDB, or when `pgvector_config` is set;\nthose always use `INSERT`.",
+          "default": false
+        },
+        "pgvector_config": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/PgVectorConfig",
+              "description": "Optional configuration to enable PgVector embedding support."
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "retry_on_deadlock": {
+          "type": "integer",
+          "description": "Number of times to retry a transaction if a deadlock is detected by Postgres.",
+          "default": 0
+        },
+        "lakebase": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/LakebaseSpec",
+              "description": "Optional configuration to connect to [Databricks Lakebase](https://docs.databricks.com/aws/en/oltp),\na PostgreSQL-compatible managed database."
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "aws_iam_auth": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/AWSIAMAuthSpec",
+              "description": "Optional configuration to connect to an AWS-managed, PostgreSQL-compatible\ndatabase with [IAM database authentication](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.IAMDBAuth.html)."
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "connection_string"
+      ]
+    }
+  }
+}

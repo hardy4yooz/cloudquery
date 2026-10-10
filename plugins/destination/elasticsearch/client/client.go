@@ -1,0 +1,122 @@
+package client
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"time"
+
+	"github.com/cenkalti/backoff/v7"
+	"github.com/cloudquery/plugin-sdk/v4/plugin"
+	"github.com/cloudquery/plugin-sdk/v4/schema"
+	"github.com/cloudquery/plugin-sdk/v4/writers/batchwriter"
+	"github.com/elastic/elastic-transport-go/v8/elastictransport"
+	"github.com/elastic/go-elasticsearch/v9"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
+	"github.com/rs/zerolog"
+)
+
+type Client struct {
+	plugin.UnimplementedSource
+	batchwriter.UnimplementedDeleteRecord
+
+	logger      zerolog.Logger
+	spec        *Spec
+	client      *elasticsearch.Client
+	typedClient *elasticsearch.TypedClient
+	writer      *batchwriter.BatchWriter
+}
+
+var errInvalidSpec = errors.New("invalid spec")
+var errUnauthorized = errors.New("unauthorized")
+var errUnreachable = errors.New("unreachable")
+
+func New(ctx context.Context, logger zerolog.Logger, specBytes []byte, newClientOpts plugin.NewClientOptions) (plugin.Client, error) {
+	var err error
+	c := &Client{
+		logger: logger.With().Str("module", "elasticsearch-dest").Logger(),
+		spec:   &Spec{},
+	}
+	if newClientOpts.NoConnection {
+		return c, nil
+	}
+	if err := json.Unmarshal(specBytes, c.spec); err != nil {
+		return nil, errors.Join(errInvalidSpec, err)
+	}
+
+	c.spec.SetDefaults()
+	if err := c.spec.Validate(); err != nil {
+		return nil, errors.Join(errInvalidSpec, err)
+	}
+	c.writer, err = batchwriter.New(c, batchwriter.WithBatchSize(c.spec.BatchSize), batchwriter.WithBatchSizeBytes(c.spec.BatchSizeBytes), batchwriter.WithLogger(c.logger))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create batch writer: %w", err)
+	}
+	retryBackoff := backoff.NewExponentialBackOff()
+	var caCert []byte
+	if len(c.spec.CACert) > 0 {
+		caCert = []byte(c.spec.CACert)
+	}
+	opts := []elasticsearch.Option{
+		elasticsearch.WithAddresses(c.spec.Addresses...),
+		elasticsearch.WithBasicAuth(c.spec.Username, c.spec.Password),
+		elasticsearch.WithCloudID(c.spec.CloudID),
+		elasticsearch.WithAPIKey(c.spec.APIKey),
+		elasticsearch.WithServiceToken(c.spec.ServiceToken),
+		elasticsearch.WithCertificateFingerprint(c.spec.CertificateFingerprint),
+		elasticsearch.WithCACert(caCert),
+		elasticsearch.WithRetry(5, 502, 503, 504, 429),
+		elasticsearch.WithTransportOptions(elastictransport.WithRetryBackoff(func(i int) time.Duration {
+			if i == 1 {
+				retryBackoff.Reset()
+			}
+			return retryBackoff.NextBackOff()
+		})),
+	}
+	es, err := elasticsearch.NewTyped(opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create Elasticsearch client: %w", err)
+	}
+	info, err := es.Info().Do(ctx)
+	if err != nil {
+		var esErr *types.ElasticsearchError
+		if errors.As(err, &esErr) && esErr.Status == 401 {
+			return nil, errors.Join(errUnauthorized, err)
+		}
+		return nil, errors.Join(errUnreachable, err)
+	}
+	c.logger.Debug().Interface("cluster_info", info).Msg("Elasticsearch cluster info")
+	c.typedClient = es
+	c.client, err = elasticsearch.New(opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create untyped Elasticsearch client: %w", err)
+	}
+	return c, nil
+}
+
+func (c *Client) Close(ctx context.Context) error {
+	if c.writer == nil {
+		return errors.New("client already closed or not initialized")
+	}
+	if err := c.writer.Close(ctx); err != nil {
+		return fmt.Errorf("failed to close batch writer: %w", err)
+	}
+	return nil
+}
+
+func (*Client) getIndexNamePattern(table *schema.Table) string {
+	hasPrimaryKeys := len(table.PrimaryKeys()) > 0
+	if hasPrimaryKeys {
+		return table.Name
+	}
+	return table.Name + "-*"
+}
+
+func (*Client) getIndexName(table *schema.Table, t time.Time) string {
+	hasPrimaryKeys := len(table.PrimaryKeys()) > 0
+	if hasPrimaryKeys {
+		return table.Name
+	}
+	return table.Name + "-" + t.Format(time.DateOnly)
+}

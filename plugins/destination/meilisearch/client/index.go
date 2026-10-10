@@ -1,0 +1,189 @@
+package client
+
+import (
+	"context"
+	"fmt"
+
+	"slices"
+
+	"github.com/cloudquery/plugin-sdk/v4/schema"
+	"github.com/meilisearch/meilisearch-go"
+)
+
+type indexSchema struct {
+	UID        string
+	PrimaryKey string
+	Attributes []string
+	Index      int
+}
+
+func (i *indexSchema) init(index *meilisearch.IndexResult) (*indexSchema, error) {
+	i.UID = index.UID
+	i.PrimaryKey = index.PrimaryKey
+
+	return i, nil
+}
+
+func (i *indexSchema) canMigrate(o *indexSchema) bool {
+	return i.UID == o.UID && i.PrimaryKey == o.PrimaryKey
+}
+
+func tableIndexSchema(table *schema.Table) *indexSchema {
+	return &indexSchema{
+		UID:        table.Name,
+		PrimaryKey: hashColumnName,
+		Attributes: table.Columns.Names(),
+	}
+}
+
+func tablesIndexSchemas(tables schema.Tables) map[string]*indexSchema {
+	res := make(map[string]*indexSchema)
+	for i, table := range tables {
+		s := tableIndexSchema(table)
+		s.Index = i
+		res[s.UID] = s
+	}
+	return res
+}
+
+func (c *Client) indexes() (map[string]*indexSchema, error) {
+	req := &meilisearch.IndexesQuery{Limit: 100, Offset: 0}
+
+	result := make(map[string]*indexSchema)
+
+	for {
+		resp, err := c.Meilisearch.ListIndexes(req)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, index := range resp.Results {
+			entry, err := new(indexSchema).init(index)
+			if err != nil {
+				return nil, err
+			}
+			result[entry.UID] = entry
+		}
+
+		if resp.Offset+resp.Limit >= resp.Total {
+			break
+		}
+		req.Offset += resp.Limit
+	}
+
+	return result, nil
+}
+
+func (c *Client) configureIndex(ctx context.Context, s *indexSchema) error {
+	c.logger.Debug().Str("index", s.UID).Msg("configuring index")
+
+	index := c.Meilisearch.Index(s.UID)
+
+	attributes := slices.Clone(s.Attributes)
+
+	attrs, err := index.GetFilterableAttributes()
+	if err != nil {
+		return err
+	}
+
+	var current []string
+	if attrs != nil {
+		// Convert []interface{} to []string
+		for _, attr := range *attrs {
+			if str, ok := attr.(string); ok {
+				current = append(current, str)
+			}
+		}
+	}
+
+	if len(current) > 0 {
+		attributes = append(attributes, current...)
+		slices.Sort(attributes)
+		attributes = slices.Compact(attributes)
+		if len(attributes) == len(current) {
+			sortable, err := index.GetSortableAttributes()
+			if err != nil {
+				return err
+			}
+			if sortable != nil && containsAll(*sortable, attributes) {
+				c.logger.Info().Str("index", s.UID).Msg("index is already properly configured, skip")
+				return nil
+			}
+		}
+	}
+
+	// Convert []string to []any for UpdateFilterableAttributes
+	attrInterfaces := make([]any, len(attributes))
+	for i, attr := range attributes {
+		attrInterfaces[i] = attr
+	}
+
+	taskInfo, err := index.UpdateFilterableAttributes(&attrInterfaces)
+	if err != nil {
+		return err
+	}
+
+	if err := c.waitTask(ctx, taskInfo); err != nil {
+		return fmt.Errorf("failed to update filterable attributes for index %q: %w", s.UID, err)
+	}
+
+	taskInfo, err = index.UpdateSortableAttributes(&attributes)
+	if err != nil {
+		return err
+	}
+
+	if err := c.waitTask(ctx, taskInfo); err != nil {
+		return fmt.Errorf("failed to update sortable attributes for index %q: %w", s.UID, err)
+	}
+
+	return nil
+}
+
+func (c *Client) createIndex(ctx context.Context, s *indexSchema) error {
+	c.logger.Debug().Str("index", s.UID).Msg("creating index")
+
+	taskInfo, err := c.Meilisearch.CreateIndex(&meilisearch.IndexConfig{
+		Uid:        s.UID,
+		PrimaryKey: s.PrimaryKey,
+	})
+	if err != nil {
+		return err
+	}
+
+	if err := c.waitTask(ctx, taskInfo); err != nil {
+		return fmt.Errorf("failed to create index %q: %w", s.UID, err)
+	}
+
+	return c.configureIndex(ctx, s)
+}
+
+func (c *Client) recreateIndex(ctx context.Context, s *indexSchema) error {
+	if err := c.deleteIndex(ctx, s); err != nil {
+		return err
+	}
+	return c.createIndex(ctx, s)
+}
+
+func (c *Client) deleteIndex(ctx context.Context, s *indexSchema) error {
+	c.logger.Debug().Str("index", s.UID).Msg("deleting index")
+
+	taskInfo, err := c.Meilisearch.DeleteIndex(s.UID)
+	if err != nil {
+		return err
+	}
+
+	if err := c.waitTask(ctx, taskInfo); err != nil {
+		return fmt.Errorf("failed to delete index %q: %w", s.UID, err)
+	}
+
+	return nil
+}
+
+func containsAll(have, want []string) bool {
+	for _, attr := range want {
+		if !slices.Contains(have, attr) {
+			return false
+		}
+	}
+	return true
+}

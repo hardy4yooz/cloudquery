@@ -1,0 +1,73 @@
+name: Destination Plugin Azure Blob Storage Workflow
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  pull_request:
+    paths:
+      - "plugins/destination/azblob/**"
+      - ".github/workflows/dest_azblob.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "plugins/destination/azblob/**"
+      - ".github/workflows/dest_azblob.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  plugins-destination-azblob:
+    timeout-minutes: 30
+    name: "plugins/destination/azblob"
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    defaults:
+      run:
+        working-directory: ./plugins/destination/azblob
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 2
+      - name: Set up Go 1.x
+        id: setup-go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version-file: plugins/destination/azblob/go.mod
+          cache: false
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ steps.setup-go.outputs.go-version }}-test-destination-azblob-${{ hashFiles('plugins/destination/azblob/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-${{ steps.setup-go.outputs.go-version }}-test-destination-azblob-
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
+        with:
+          version: v2.14.0
+          working-directory: plugins/destination/azblob
+          args: "--config ../../.golangci.yml"
+      - name: gen
+        if: github.event_name == 'pull_request'
+        run: make gen
+      - name: Fail if generation updated files
+        if: github.event_name == 'pull_request'
+        run: test "$(git status -s | wc -l)" -eq 0 || (git status -s; exit 1)
+      - name: Build
+        run: go build .
+      - name: Azure login
+        uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906 # v3
+        with:
+          client-id: ${{ secrets.AZURE_INTEGRATION_TESTS_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_INTEGRATION_TESTS_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_INTEGRATION_TESTS_SUBSCRIPTION_ID }}
+      - name: Test azblob plugin
+        run: make test
+  

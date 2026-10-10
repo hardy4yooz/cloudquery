@@ -1,7 +1,7 @@
 project_name: cli
 
 monorepo:
-  tag_prefix: cli/
+  tag_prefix: cli-
   dir: cli
 
 includes:
@@ -16,18 +16,92 @@ dockers:
     goarch: amd64
     dockerfile: Dockerfile.goreleaser
     image_templates:
-      - "ghcr.io/cloudquery/cloudquery:latest"
-      - "ghcr.io/cloudquery/cloudquery:{{.Version}}"
-      - "ghcr.io/cloudquery/cloudquery:{{ .Major }}.{{ .Minor }}"
+      - "ghcr.io/cloudquery/cloudquery:latest-linux-amd64"
+      - "ghcr.io/cloudquery/cloudquery:{{.Version}}-linux-amd64"
+      - "ghcr.io/cloudquery/cloudquery:{{ .Major }}.{{ .Minor }}-linux-amd64"
+    use: buildx
     build_flag_templates:
+      - "--pull"
+      - "--platform=linux/amd64"
       - "--label=org.opencontainers.image.source=https://github.com/cloudquery/cloudquery"
+  -
+    goos: linux
+    goarch: arm64
+    dockerfile: Dockerfile.goreleaser
+    image_templates:
+      - "ghcr.io/cloudquery/cloudquery:latest-linux-arm64"
+      - "ghcr.io/cloudquery/cloudquery:{{.Version}}-linux-arm64"
+      - "ghcr.io/cloudquery/cloudquery:{{ .Major }}.{{ .Minor }}-linux-arm64"
+    use: buildx
+    build_flag_templates:
+      - "--pull"
+      - "--platform=linux/arm64"
+      - "--label=org.opencontainers.image.source=https://github.com/cloudquery/cloudquery"
+  -
+    goos: linux
+    goarch: amd64
+    dockerfile: Dockerfile.ubuntu.goreleaser
+    image_templates:
+      - "ghcr.io/cloudquery/cloudquery:latest-ubuntu-amd64"
+      - "ghcr.io/cloudquery/cloudquery:{{.Version}}-ubuntu-amd64"
+      - "ghcr.io/cloudquery/cloudquery:{{ .Major }}.{{ .Minor }}-ubuntu-amd64"
+    use: buildx
+    build_flag_templates:
+      - "--pull"
+      - "--platform=linux/amd64"
+      - "--label=org.opencontainers.image.source=https://github.com/cloudquery/cloudquery"
+  -
+    goos: linux
+    goarch: arm64
+    dockerfile: Dockerfile.ubuntu.goreleaser
+    image_templates:
+      - "ghcr.io/cloudquery/cloudquery:latest-ubuntu-arm64"
+      - "ghcr.io/cloudquery/cloudquery:{{.Version}}-ubuntu-arm64"
+      - "ghcr.io/cloudquery/cloudquery:{{ .Major }}.{{ .Minor }}-ubuntu-arm64"
+    use: buildx
+    build_flag_templates:
+      - "--pull"
+      - "--platform=linux/arm64"
+      - "--label=org.opencontainers.image.source=https://github.com/cloudquery/cloudquery"
+
+docker_manifests:
+- name_template: "ghcr.io/cloudquery/cloudquery:{{.Version}}"
+  image_templates:
+  - "ghcr.io/cloudquery/cloudquery:{{.Version}}-linux-amd64"
+  - "ghcr.io/cloudquery/cloudquery:{{.Version}}-linux-arm64"
+
+- name_template: "ghcr.io/cloudquery/cloudquery:latest"
+  image_templates:
+  - "ghcr.io/cloudquery/cloudquery:latest-linux-amd64"
+  - "ghcr.io/cloudquery/cloudquery:latest-linux-arm64"
+
+- name_template: "ghcr.io/cloudquery/cloudquery:{{ .Major }}.{{ .Minor }}"
+  image_templates:
+  - "ghcr.io/cloudquery/cloudquery:{{ .Major }}.{{ .Minor }}-linux-amd64"
+  - "ghcr.io/cloudquery/cloudquery:{{ .Major }}.{{ .Minor }}-linux-arm64"
+
+- name_template: "ghcr.io/cloudquery/cloudquery:{{.Version}}-ubuntu"
+  image_templates:
+  - "ghcr.io/cloudquery/cloudquery:{{.Version}}-ubuntu-amd64"
+  - "ghcr.io/cloudquery/cloudquery:{{.Version}}-ubuntu-arm64"
+
+- name_template: "ghcr.io/cloudquery/cloudquery:latest-ubuntu"
+  image_templates:
+  - "ghcr.io/cloudquery/cloudquery:latest-ubuntu-amd64"
+  - "ghcr.io/cloudquery/cloudquery:latest-ubuntu-arm64"
+
+- name_template: "ghcr.io/cloudquery/cloudquery:{{ .Major }}.{{ .Minor }}-ubuntu"
+  image_templates:
+  - "ghcr.io/cloudquery/cloudquery:{{ .Major }}.{{ .Minor }}-ubuntu-amd64"
+  - "ghcr.io/cloudquery/cloudquery:{{ .Major }}.{{ .Minor }}-ubuntu-arm64"
+
 
 brews:
   -
     ids:
       - homebrew
     name: cloudquery
-    tap:
+    repository:
       owner: cloudquery
       name: homebrew-tap
     url_template: "https://github.com/cloudquery/cloudquery/releases/download/{{ .PrefixedTag }}/{{ .ArtifactName }}"
@@ -41,3 +115,27 @@ brews:
       (zsh_completion/"_cloudquery").write output
       output = Utils.safe_popen_read("#{bin}/cloudquery", "completion", "fish")
       (fish_completion/"cloudquery.fish").write output
+    caveats: |
+      ✅ CloudQuery installed!
+      Next: Authenticate via `cloudquery login`
+  -
+    ids:
+      - homebrew
+    name: cloudquery@{{.Version}}
+    repository:
+      owner: cloudquery
+      name: homebrew-tap
+    url_template: "https://github.com/cloudquery/cloudquery/releases/download/{{ .PrefixedTag }}/{{ .ArtifactName }}"
+    homepage: "https://cloudquery.io"
+    description: "Easily monitor and ask questions about your infrastructure."
+    install: |-
+      bin.install "cloudquery"
+      output = Utils.safe_popen_read("#{bin}/cloudquery", "completion", "bash")
+      (bash_completion/"cloudquery").write output
+      output = Utils.safe_popen_read("#{bin}/cloudquery", "completion", "zsh")
+      (zsh_completion/"_cloudquery").write output
+      output = Utils.safe_popen_read("#{bin}/cloudquery", "completion", "fish")
+      (fish_completion/"cloudquery.fish").write output
+    caveats: |
+      ✅ CloudQuery installed!
+      Next: Authenticate via `cloudquery login`

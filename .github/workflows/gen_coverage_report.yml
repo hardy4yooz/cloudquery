@@ -1,0 +1,63 @@
+name: Generate Coverage Report
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * 1"
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  gen-coverage-report:
+    runs-on: ubicloud-standard-8
+    permissions:
+      id-token: write
+      contents: write
+    steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          app-id: ${{ secrets.CQ_APP_ID }}
+          private-key: ${{ secrets.CQ_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+      - name: Set up Go 1.x
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version-file: go.mod
+          cache: false
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6
+        with:
+          role-to-assume: arn:aws:iam::615713231484:role/destination-s3
+          aws-region: us-east-1
+      - name: Azure login
+        uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906 # v3
+        with:
+          client-id: ${{ secrets.AZURE_INTEGRATION_TESTS_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_INTEGRATION_TESTS_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_INTEGRATION_TESTS_SUBSCRIPTION_ID }}
+      - name: Generate Coverage Report
+        env:
+          SNOW_TEST_DSN: ${{ secrets.SNOW_TEST_DSN }}
+          CLOUDQUERY_API_KEY: ${{ secrets.CLOUDQUERY_API_KEY }}
+        run: |
+          ./scripts/test-coverage.sh
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8
+        with:
+          # required so the PR triggers workflow runs
+          token: ${{ steps.app-token.outputs.token }}
+          branch: chore/update_coverage_report
+          base: main
+          title: "chore: Update coverage report"
+          commit-message: "chore: Update coverage report"
+          body: This PR was created by a scheduled workflow to update the coverage report
+          labels: automerge

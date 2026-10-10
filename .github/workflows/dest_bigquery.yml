@@ -1,0 +1,117 @@
+name: Destination Plugin BigQuery Workflow
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  pull_request:
+    paths:
+      - 'plugins/destination/bigquery/**'
+      - '.github/workflows/dest_bigquery.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'plugins/destination/bigquery/**'
+      - '.github/workflows/dest_bigquery.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  plugins-destination-bigquery:
+    timeout-minutes: 10
+    name: 'plugins/destination/bigquery'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./plugins/destination/bigquery
+      # Add "id-token" with the intended permissions.
+    permissions:
+      id-token: 'write' # This required for OIDC
+      contents: 'read' # This is required for actions/checkout@v3
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 2
+      - name: Set up Cloud SDK
+        uses: 'google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db' # v3.0.1
+      - name: Set up Go 1.x
+        id: setup-go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version-file: plugins/destination/bigquery/go.mod
+          cache: false
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ steps.setup-go.outputs.go-version }}-test-destination-bigquery-${{ hashFiles('plugins/destination/bigquery/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-${{ steps.setup-go.outputs.go-version }}-test-destination-bigquery-
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
+        with:
+          version: v2.14.0
+          working-directory: plugins/destination/bigquery
+          args: '--config ../../.golangci.yml'
+      - name: gen
+        if: github.event_name == 'pull_request'
+        run: make gen
+      - name: Fail if generation updated files
+        if: github.event_name == 'pull_request'
+        run: test "$(git status -s | wc -l)" -eq 0 || (git status -s; exit 1)
+      - name: Authenticate to Google Cloud
+        uses: 'google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093' # v3
+        with:
+          workload_identity_provider: 'projects/151868820337/locations/global/workloadIdentityPools/integration-test-pool/providers/integration-test-provider'
+          service_account: 'integration-service-account@cq-integration-tests.iam.gserviceaccount.com'
+      - name: Build
+        run: go build .
+      - name: Test
+        run: make test
+        env:
+          BIGQUERY_PROJECT_ID: ${{ secrets.BIGQUERY_TEST_PROJECT_ID }}
+          BIGQUERY_DATASET_ID: ${{ secrets.BIGQUERY_TEST_DATASET_ID }}
+          BIGQUERY_DATASET_LOCATION: us-west1
+
+  validate-fips:
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./plugins/destination/bigquery
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Set up Go 1.x
+        id: setup-go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version-file: plugins/destination/bigquery/go.mod
+          cache: false
+
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ steps.setup-go.outputs.go-version }}-validate-plugin-fips-cache-destination-bigquery-${{ hashFiles('plugins/destination/bigquery/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-${{ steps.setup-go.outputs.go-version }}-validate-plugin-fips-cache-destination-bigquery-
+
+      - name: Run package command
+        env:
+          GOFLAGS: "-tags=fipsEnabled"
+        run: |
+          rm -rf docs/tables.md
+          go run main_fips.go package -m "chore: Test FIPS" "v1.0.0" .
+
+      - name: Unzip package artifacts
+        run: |
+          unzip -o dist/plugin-bigquery-v1.0.0-linux-amd64.zip
+          chmod +x plugin-bigquery-v1.0.0-linux-amd64
+          ./plugin-bigquery-v1.0.0-linux-amd64 --version 2>&1 | grep -E 'FIPS enabled: true'

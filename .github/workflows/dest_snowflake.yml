@@ -1,0 +1,73 @@
+name: Destination Plugin Snowflake Workflow
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  pull_request:
+    paths:
+      - "plugins/destination/snowflake/**"
+      - ".github/workflows/dest_snowflake.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "plugins/destination/snowflake/**"
+      - ".github/workflows/dest_snowflake.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  plugins-destination-snowflake:
+    timeout-minutes: 30
+    name: "plugins/destination/snowflake"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./plugins/destination/snowflake
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 2
+      - name: Set up Go 1.x
+        id: setup-go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version-file: plugins/destination/snowflake/go.mod
+          cache: false
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ steps.setup-go.outputs.go-version }}-test-destination-snowflake-${{ hashFiles('plugins/destination/snowflake/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-${{ steps.setup-go.outputs.go-version }}-test-destination-snowflake-
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
+        with:
+          version: v2.14.0
+          working-directory: plugins/destination/snowflake
+          args: "--config ../../.golangci.yml"
+      - name: gen
+        if: github.event_name == 'pull_request'
+        run: make gen
+      - name: Fail if generation updated files
+        if: github.event_name == 'pull_request'
+        run: test "$(git status -s | wc -l)" -eq 0 || (git status -s; exit 1)
+      - name: Build
+        run: go build .
+      - name: Test
+        run: make test
+        env: # Or as an environment variable
+          CQ_SNOWFLAKE_TEST: ${{ vars.CQ_SNOWFLAKE_TEST }}
+          SNOW_ACCOUNT: ${{ secrets.SNOW_ACCOUNT }}
+          SNOW_USER: ${{ secrets.SNOW_USER }}
+          SNOW_PRIVATE_KEY: ${{ secrets.SNOW_PRIVATE_KEY }}
+          SNOW_DATABASE: ${{ secrets.SNOW_DATABASE }}
+          SNOW_SCHEMA: ${{ secrets.SNOW_SCHEMA }}
+          SNOW_WAREHOUSE: ${{ secrets.SNOW_WAREHOUSE }}
+          SNOW_REGION: ${{ secrets.SNOW_REGION }}
+  
